@@ -13,7 +13,7 @@ require Exporter;
 # Do not simply export all your public functions/methods/constants.
 @EXPORT = qw( labelsetup labeldata averycode);
 
-$VERSION = '2.02';
+$VERSION = '2.03';
 
 use Carp;
 
@@ -443,7 +443,7 @@ sub labeltest {
 
 	my $postscript = $self->{DATA}{TESTPAGE};
 
-	my $cols = int(papersize($self)->[0] / ($self->{SETUP}{x_gap} + $self->{SETUP}{output_width}));
+	my $cols = $self->{SETUP}{columns} || int(papersize($self)->[0] / ($self->{SETUP}{x_gap} + $self->{SETUP}{output_width}));
 	my $rows = $self->{SETUP}{number}/$cols;
 
 	my $paperwidth = papersize($self)->[0] ; # total width of paper
@@ -501,7 +501,7 @@ LABELS
 		$postscript .= $self->{DATA}{POSTNET}; # add in barcode stuff
 	}
 
-	my $cols = int(papersize($self)->[0] / ($self->{SETUP}{x_gap} + $self->{SETUP}{output_width}));
+	my $cols = $self->{SETUP}{columns} || int(papersize($self)->[0] / ($self->{SETUP}{x_gap} + $self->{SETUP}{output_width}));
 	my $rows = $self->{SETUP}{number}/$cols;
 
 	my $boxwidth = $self->{SETUP}{output_width} ; # label width
@@ -1415,6 +1415,15 @@ Add bitmaps or images?
 =back
 
 =head1 REVISION HISTORY
+
+	Version 2.03 - Fri Sep 28 07:22:28 CDT 2001
+	User-defined number of columns was over-ridden with a calculated
+	number. Now it works, thanks to Allan Engelhardt.
+
+	Version 2.02 - Fri Jan 12 22:07:12 CST 2001
+	Added y_gap tp Avery(tm) labels
+	Updated calibration plot in BasicData to arbitrary paper size
+	Minor repairs to test routine
 
 	Version 2.01 - January 2001
 	Added y_gap tp Avery(tm) labels

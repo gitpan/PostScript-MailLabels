@@ -1,5 +1,9 @@
 Revision history for Perl extension PostScript::MailLabels.
 
+2.03 Fri Sep 28 07:26:27 CDT 2001
+	Changed to honor user-defined number of columns - thanks to Allan 
+	Engelhardt for suppplying a patch.
+
 2.02 Fri Jan 12 22:07:12 CST 2001
         Added y_gap tp Avery(tm) labels
         Updated calibration plot in BasicData to arbitrary paper size
