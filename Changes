@@ -1,5 +1,11 @@
 Revision history for Perl extension PostScript::MailLabels.
 
+1.01  Fri Dec 29 10:00:07 CST 2000
+	- bug fix version. 
+		- added parameter checking and also lowercase parameters to reduce errors.
+		- fixed PostScript code for boxes to work with newer ghostscript interpreters
+		- added new URL's for addressbook homepage.
+
 1.00  Wed Nov 10 21:32:53 1999
 	- original version; created by h2xs 1.19
 

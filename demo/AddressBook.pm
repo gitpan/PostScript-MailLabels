@@ -86,6 +86,8 @@ __END__
 AddressBook.pm - Read and select from an ASCII address book as defined
 				 by http://home.pages.de/~clemens and his Tcl/Tk
 				 addressbook software.
+				 Moved to http://addressbook.home.pages.de or
+				 http://www.red.roses.de/~clemens/addressbook/
                          
 
 =head1 SYNOPSIS

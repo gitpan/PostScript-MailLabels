@@ -11,7 +11,7 @@ require Exporter;
 # Do not simply export all your public functions/methods/constants.
 @EXPORT = qw( );
 
-$VERSION = '1.0';
+$VERSION = '1.01';
 
 use Carp;
 
@@ -347,10 +347,14 @@ grestore
 				/adj_l false def % was left box edge adjusted?
 				/adj_r false def % was right box edge adjusted?
 			    x lbor lt {/adj_l true def} if % set adjusted start x flag
-			    /sx x lbor lt lbor x ifelse store % set adjusted start x
+				/sx x store
+				adj_l {/sx lbor store} if
+			    %/sx x lbor lt lbor x ifelse store % set adjusted start x
 				/x x boxwidth add store
 			    x rbor gt {/adj_r true def} if % set adjusted start x flag
-				/ex x rbor gt rbor x ifelse store % set adjusted end x
+				/ex x store
+				adj_r {/se rbor store} if
+				%/ex x rbor gt rbor x ifelse store % set adjusted end x
 				/x x xgap add store
 				/width ex sx sub store
 				sx xadjust add y moveto

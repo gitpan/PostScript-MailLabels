@@ -3,6 +3,6 @@ use ExtUtils::MakeMaker;
 # the contents of the Makefile that is written.
 WriteMakefile(
     'NAME'	=> 'PostScript::MailLabels',
-    'VERSION' => "1.0", 
+    'VERSION_FROM' => "lib/PostScript/MailLabels.pm", 
 	EXE_FILES => [qw(demo/print_addrs)],
 );

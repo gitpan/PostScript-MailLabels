@@ -13,7 +13,7 @@ require Exporter;
 # Do not simply export all your public functions/methods/constants.
 @EXPORT = qw( labelsetup labeldata averycode);
 
-$VERSION = '1.0';
+$VERSION = '1.01';
 
 use Carp;
 
@@ -60,41 +60,41 @@ sub initialize {
 
 		#	paper size
 
-		PaperSize		=> 'Letter',
+		papersize		=> 'letter',
 			
 		#	printable area on physical page
 
-		Printable_Left		=> 0.0,
-		Printable_Right		=> 0.0,
-		Printable_Top		=> 0.0,
-		Printable_Bot		=> 0.0,
+		printable_left		=> 0.0,
+		printable_right		=> 0.0,
+		printable_top		=> 0.0,
+		printable_bot		=> 0.0,
 
 		#	define where the labels live (ideally)
 
-		Output_Top		=> 0.0, 
-		Output_Left		=> 0.0, 
-		Output_Width	=> 0.0, 
-		Output_Height	=> 0.0, 
-		X_Gap			=> 0.0,
-		Y_Gap			=> 0.0,
-		Number			=> 0,
+		output_top		=> 0.0, 
+		output_left		=> 0.0, 
+		output_width	=> 0.0, 
+		output_height	=> 0.0, 
+		x_gap			=> 0.0,
+		y_gap			=> 0.0,
+		number			=> 0,
 
 		#	Adjustments for printer idiosyncracies
 
-		X_Adjust		=> 0.0,
-		Y_Adjust		=> 0.0,
+		x_adjust		=> 0.0,
+		y_adjust		=> 0.0,
 
 		#	Other controls
 
-		Postnet		=> 'yes',
-		Font		=> 'Helvetica',
-		FontSize 	=> 12,
-		Units    	=> 'english',
-		FirstLabel	=> 1,
+		postnet		=> 'yes',
+		font		=> 'Helvetica',
+		fontsize 	=> 12,
+		units    	=> 'english',
+		firstlabel	=> 1,
 
 		# set equal to the Avery(tm) product code, and the label description
 		# will be updated from the database.
-		Avery		=> undef,
+		avery		=> undef,
 
 				   );
 	
@@ -111,17 +111,42 @@ sub labelsetup {
 	my $self = shift;
 	my %args = @_;
 
+	my %params;
+	@params{ qw / papersize printable_left printable_right printable_top printable_bot output_top
+		output_left output_width output_height x_gap y_gap number x_adjust y_adjust
+		postnet font fontsize units firstlabel avery / } = (0..19);
+
 	foreach (keys %args) 
 		{ 
-			$self->{SETUP}{$_} = $args{$_}; 
+			if (!defined $params{lc($_)}) {
+				print STDERR "Invalid setup parameter $_\n";
+				die;
+			}
+			if ( lc($_) eq 'font') {
+				my @fonts = ListFonts($self); 
+				my $okay=0;
+				foreach my $font (@fonts) {
+					if ($font eq $args{$_}){
+						$okay=1;
+						last;
+					}
+				}
+				if (!$okay) {
+					print STDERR "Invalid font, $args{$_}, requested.\n",
+					             "Available fonts are :\n",
+								 join("\n",@fonts),"\n";
+					die;
+				}
+			}
+			$self->{SETUP}{lc($_)} = $args{$_}; 
 		}
 	
 	#	convert all parameters to points
 
 	my $f = 72;
-	if ($self->{SETUP}{Units} eq 'metric') {$f = 28.3465;}
+	if ($self->{SETUP}{units} eq 'metric') {$f = 28.3465;}
 
-	foreach (qw/Output_Left Output_Top Output_Width Output_Height Printable_Left Printable_Right Printable_Top Printable_Bot X_Gap Y_Gap X_Adjust Y_Adjust/) {
+	foreach (qw/output_left output_top output_width output_height printable_left printable_right printable_top printable_bot x_gap y_gap x_adjust y_adjust/) {
 		if (defined $args{$_}) {$self->{SETUP}{$_} *= $f;}
 	}	
 
@@ -132,14 +157,14 @@ sub labelsetup {
  #          number per sheet, left-offset, top-offset, width, height]
  #			distances measured in points
 
-	if (defined $self->{SETUP}{Avery}) {
-		my $code = $self->{SETUP}{Avery};
-		$self->{SETUP}{PaperSize} = $self->{DATA}{AVERY}{$code}->[0]; 
-		$self->{SETUP}{Number} = $self->{DATA}{AVERY}{$code}->[3]; 
-		$self->{SETUP}{Output_Left} = $self->{DATA}{AVERY}{$code}->[4]; 
-		$self->{SETUP}{Output_Top} = $self->{DATA}{AVERY}{$code}->[5]; 
-		$self->{SETUP}{Output_Width} = $self->{DATA}{AVERY}{$code}->[6]; 
-		$self->{SETUP}{Output_Height} = $self->{DATA}{AVERY}{$code}->[7]; 
+	if (defined $self->{SETUP}{avery}) {
+		my $code = $self->{SETUP}{avery};
+		$self->{SETUP}{papersize} = $self->{DATA}{AVERY}{$code}->[0]; 
+		$self->{SETUP}{number} = $self->{DATA}{AVERY}{$code}->[3]; 
+		$self->{SETUP}{output_left} = $self->{DATA}{AVERY}{$code}->[4]; 
+		$self->{SETUP}{output_top} = $self->{DATA}{AVERY}{$code}->[5]; 
+		$self->{SETUP}{output_width} = $self->{DATA}{AVERY}{$code}->[6]; 
+		$self->{SETUP}{output_height} = $self->{DATA}{AVERY}{$code}->[7]; 
 	}
 
 	return $self->{SETUP};
@@ -178,7 +203,7 @@ sub labelcalibration {
 	my $ycenter = papersize($self)->[1]/2;
 
 	my $inc = 7.2;
-	if ($self->{SETUP}{Units} eq 'metric') {$inc = 2.83465;}
+	if ($self->{SETUP}{units} eq 'metric') {$inc = 2.83465;}
 
 	my $numx = int((($xcenter*2)/($inc*10))+0.9);
 	my $numy = int((($ycenter*2)/($inc*10))+0.9);
@@ -202,26 +227,26 @@ sub labeltest {
 
 	my $postscript = $self->{DATA}{TESTPAGE};
 
-	my $cols = int(papersize($self)->[0] / ($self->{SETUP}{X_Gap} + $self->{SETUP}{Output_Width}));
-	my $rows = $self->{SETUP}{Number}/$cols;
+	my $cols = int(papersize($self)->[0] / ($self->{SETUP}{x_gap} + $self->{SETUP}{output_width}));
+	my $rows = $self->{SETUP}{number}/$cols;
 
 	$postscript =~ s/%paperwidth%/papersize($self)->[0]/e ; # total width of paper
 	$postscript =~ s/%paperheight%/papersize($self)->[1]/e ; # total height of paper
-	$postscript =~ s/%boxwidth%/$self->{SETUP}{Output_Width}/e ; # label width
-	$postscript =~ s/%boxheight%/$self->{SETUP}{Output_Height}/e ; # label height
-	$postscript =~ s/%xgap%/$self->{SETUP}{X_Gap}/e ; # x gap between labels
-	$postscript =~ s/%ygap%/$self->{SETUP}{Y_Gap}/e ; # y gap between labels
+	$postscript =~ s/%boxwidth%/$self->{SETUP}{output_width}/e ; # label width
+	$postscript =~ s/%boxheight%/$self->{SETUP}{output_height}/e ; # label height
+	$postscript =~ s/%xgap%/$self->{SETUP}{x_gap}/e ; # x gap between labels
+	$postscript =~ s/%ygap%/$self->{SETUP}{y_gap}/e ; # y gap between labels
 	$postscript =~ s/%rows%/$rows/ ; # rows of labels on each page
 	$postscript =~ s/%cols%/$cols/ ; # columns of labels on each page
-	$postscript =~ s/%by%/$self->{SETUP}{Output_Top}/e ; # gap between top of first label and top of page
+	$postscript =~ s/%by%/$self->{SETUP}{output_top}/e ; # gap between top of first label and top of page
 
 	# adjustments
-	$postscript =~ s/%xadjust%/$self->{SETUP}{X_Adjust}/e ; # adjustment if paper not x centered 
-	$postscript =~ s/%yadjust%/$self->{SETUP}{Y_Adjust}/e ; # adjustment if paper not y centered
-	$postscript =~ s/%lbor%/$self->{SETUP}{Printable_Left}/e ; # left border
-	$postscript =~ s/%rbor%/$self->{SETUP}{Printable_Right}/e ; # right border 
-	$postscript =~ s/%tbor%/$self->{SETUP}{Printable_Top}/e ; # top border
-	$postscript =~ s/%bbor%/$self->{SETUP}{Printable_Bot}/e ; # bottom border
+	$postscript =~ s/%xadjust%/$self->{SETUP}{x_adjust}/e ; # adjustment if paper not x centered 
+	$postscript =~ s/%yadjust%/$self->{SETUP}{y_adjust}/e ; # adjustment if paper not y centered
+	$postscript =~ s/%lbor%/$self->{SETUP}{printable_left}/e ; # left border
+	$postscript =~ s/%rbor%/$self->{SETUP}{printable_right}/e ; # right border 
+	$postscript =~ s/%tbor%/$self->{SETUP}{printable_top}/e ; # top border
+	$postscript =~ s/%bbor%/$self->{SETUP}{printable_bot}/e ; # bottom border
 
     return $postscript;
 }
@@ -270,28 +295,28 @@ LABELS
 #---------- end preamble
 	$postscript .= $self->{DATA}{POSTNET}; # add in barcode stuff
 
-	my $cols = int(papersize($self)->[0] / ($self->{SETUP}{X_Gap} + $self->{SETUP}{Output_Width}));
-	my $rows = $self->{SETUP}{Number}/$cols;
+	my $cols = int(papersize($self)->[0] / ($self->{SETUP}{x_gap} + $self->{SETUP}{output_width}));
+	my $rows = $self->{SETUP}{number}/$cols;
 
 	my $paperwidth = papersize($self)->[0] ; # total width of paper
 	my $paperheight = papersize($self)->[1] ; # total height of paper
-	my $boxwidth = $self->{SETUP}{Output_Width} ; # label width
-	my $boxheight = $self->{SETUP}{Output_Height} ; # label height
-	my $xgap = $self->{SETUP}{X_Gap} ; # x gap between labels
-	my $ygap = $self->{SETUP}{Y_Gap} ; # y gap between labels
-	my $by = $self->{SETUP}{Output_Top} ; # gap between top of first label and top of page
+	my $boxwidth = $self->{SETUP}{output_width} ; # label width
+	my $boxheight = $self->{SETUP}{output_height} ; # label height
+	my $xgap = $self->{SETUP}{x_gap} ; # x gap between labels
+	my $ygap = $self->{SETUP}{y_gap} ; # y gap between labels
+	my $by = $self->{SETUP}{output_top} ; # gap between top of first label and top of page
 
 	# adjustments
-	my $xadjust = $self->{SETUP}{X_Adjust} ; # adjustment if paper not x centered 
-	my $yadjust = $self->{SETUP}{Y_Adjust} ; # adjustment if paper not y centered
-	my $lbor = $self->{SETUP}{Printable_Left} ; # left border
-	my $rbor = $self->{SETUP}{Printable_Right} ; # right border 
+	my $xadjust = $self->{SETUP}{x_adjust} ; # adjustment if paper not x centered 
+	my $yadjust = $self->{SETUP}{y_adjust} ; # adjustment if paper not y centered
+	my $lbor = $self->{SETUP}{printable_left} ; # left border
+	my $rbor = $self->{SETUP}{printable_right} ; # right border 
 	$rbor = $paperwidth - $rbor;
-	my $tbor = $self->{SETUP}{Printable_Top} ; # top border
-	my $bbor = $self->{SETUP}{Printable_Bot} ; # bottom border
+	my $tbor = $self->{SETUP}{printable_top} ; # top border
+	my $bbor = $self->{SETUP}{printable_bot} ; # bottom border
 
-	my $fontsize = $self->{SETUP}{FontSize};
-	my $font = $self->{SETUP}{Font};
+	my $fontsize = $self->{SETUP}{fontsize};
+	my $font = $self->{SETUP}{font};
 	
 	#	Can I fit all the rows desired onto the page?
 
@@ -340,13 +365,13 @@ LABELS
 
 	#	Addresses stored as [first, last, street, city, state, zip]
 
-	my $lab = $self->{SETUP}{FirstLabel};
+	my $lab = $self->{SETUP}{firstlabel};
 	foreach (@{$addrs}){
 		my $name = trimname($self,$_->[0],$_->[1], $w_arr[$lab]);
 		my $street = trimaddr($self,$_->[2], $w_arr[$lab]);
 		my $city = trimcity($self,$_->[3],$_->[4],$_->[5], $w_arr[$lab]);
 		my $bar = trimbar($self,$_->[5],$_->[2], $w_arr[$lab]);
-		if ($self->{SETUP}{Postnet} ne 'yes') {$bar = '';}
+		if ($self->{SETUP}{postnet} ne 'yes') {$bar = '';}
 
 		$postscript .= "/sx $x_arr[$lab] def /y $y_arr[$lab] def\n";
 		$postscript .= "($name) ($street) ($city) ($bar) makelabel\n";
@@ -465,38 +490,38 @@ sub trimbar {
 		return ' ';
 	}
 
-	my $keepfont = $self->{SETUP}{Font};
-	my $keepfontsize = $self->{SETUP}{FontSize};
-	$self->{SETUP}{Font} = 'PostNetJHC';
-	$self->{SETUP}{FontSize} = 12;
+	my $keepfont = $self->{SETUP}{font};
+	my $keepfontsize = $self->{SETUP}{fontsize};
+	$self->{SETUP}{font} = 'PostNetJHC';
+	$self->{SETUP}{fontsize} = 12;
 
 	my $zip5 = substr($zip,0,5);
 	my $zipcode = 'I' . $zip5 . chksum($zip5) . "I";
 
 	my $strwidth = stringwidth($self,$zipcode);
 	if ($strwidth > $width) { # can't make it short enough
-		$self->{SETUP}{Font} = $keepfont;
-		$self->{SETUP}{FontSize} = $keepfontsize;
+		$self->{SETUP}{font} = $keepfont;
+		$self->{SETUP}{fontsize} = $keepfontsize;
 		return ' ';
 	}
 
 	if (length($zip) == 5) {
-		$self->{SETUP}{Font} = $keepfont;
-		$self->{SETUP}{FontSize} = $keepfontsize;
+		$self->{SETUP}{font} = $keepfont;
+		$self->{SETUP}{fontsize} = $keepfontsize;
 		return $zipcode;
 	}
 
 	if (length($zip) != 9) {
 		print STDERR "error in zipcode $zip\n";
-		$self->{SETUP}{Font} = $keepfont;
-		$self->{SETUP}{FontSize} = $keepfontsize;
+		$self->{SETUP}{font} = $keepfont;
+		$self->{SETUP}{fontsize} = $keepfontsize;
 		return $zipcode;
 	}
 	
 	my $zip_plus = 'I' . $zip . chksum($zip) . "I";
 	$strwidth = stringwidth($self,$zip_plus);
-	$self->{SETUP}{Font} = $keepfont;
-	$self->{SETUP}{FontSize} = $keepfontsize;
+	$self->{SETUP}{font} = $keepfont;
+	$self->{SETUP}{fontsize} = $keepfontsize;
 	if ($strwidth > $width) { 
 		return $zipcode;
 	}
@@ -514,10 +539,10 @@ sub chksum {
 sub labeldata {
     my $self = shift;
 
-    return [ $self->{SETUP}{Output_Left},
-             $self->{SETUP}{Output_Top},
-             $self->{SETUP}{Output_Width},
-             $self->{SETUP}{Output_Height},
+    return [ $self->{SETUP}{output_left},
+             $self->{SETUP}{output_top},
+             $self->{SETUP}{output_width},
+             $self->{SETUP}{output_height},
 	       ];
 }
 
@@ -545,16 +570,16 @@ sub averycode {
 sub papersize {
     my $self = shift;
 
-    return [$self->{DATA}->{WIDTH}{$self->{SETUP}{PaperSize}},
-	        $self->{DATA}->{HEIGHT}{$self->{SETUP}{PaperSize}},];
+    return [$self->{DATA}->{WIDTH}{$self->{SETUP}{papersize}},
+	        $self->{DATA}->{HEIGHT}{$self->{SETUP}{papersize}},];
 }
 
 
 sub stringwidth {
    my ($self,$string,) = @_;
    my $returnval = 0;
-   my $fontname = $self->{SETUP}{Font};
-   my $fontsize = $self->{SETUP}{FontSize};
+   my $fontname = $self->{SETUP}{font};
+   my $fontsize = $self->{SETUP}{fontsize};
   
    foreach my $char (unpack("C*",$string)) {
        $returnval+=$self->{DATA}->{FONTS}{$fontname}->[$char-32];
@@ -827,6 +852,18 @@ the USPS spec on the barcode, and so far as I can tell, I meet the spec.
     
     $output = $labels->makelabels(\@addresses);
     `lpr < $output`;
+
+=head1 REVISION HISTORY
+
+	Version 1.0.1 - December 2000
+	Bug reported by John Summerfield <summer@OS2.ami.com.au>
+	Lowercase all SETUP parameters to avoid problems with mis-spellings.
+	Do real parameter checks to check simple spelling errors.
+
+	Bug reported by Nuno Faria <nfaria@fe.up.pt>
+	Boxes plot did not work. Frankly I can't figure out how it ever did. Anyway
+	it breaks on more modern versions of ghostscript, so I fixed it. Basically
+	rewrote part of the PostScript code.
 
 =head1 AUTHOR
 
