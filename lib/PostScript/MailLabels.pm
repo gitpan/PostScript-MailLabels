@@ -13,7 +13,7 @@ require Exporter;
 # Do not simply export all your public functions/methods/constants.
 @EXPORT = qw( labelsetup labeldata averycode);
 
-$VERSION = '2.00';
+$VERSION = '2.01';
 
 use Carp;
 
@@ -363,6 +363,8 @@ if (defined $self->{SETUP}{avery} && $self->{SETUP}{avery} ne '') {
 		$self->{SETUP}{output_top} = $self->{DATA}{AVERY}{$code}->[5]; 
 		$self->{SETUP}{output_width} = $self->{DATA}{AVERY}{$code}->[6]; 
 		$self->{SETUP}{output_height} = $self->{DATA}{AVERY}{$code}->[7]; 
+		$self->{SETUP}{x_gap} = $self->{DATA}{AVERY}{$code}->[8]; 
+		$self->{SETUP}{y_gap} = $self->{DATA}{AVERY}{$code}->[9]; 
 	}
 
 	#	Verify that measurements sum correctly...
@@ -416,7 +418,7 @@ sub labelcalibration {
 	my $ycenter = papersize($self)->[1]/2;
 
 	my $inc = 7.2;
-	if ($self->{SETUP}{units} eq 'metric') {$inc = 2.83465;}
+	if ($self->{SETUP}{units} eq 'metric') {$inc = 2.8346457;}
 
 	my $numx = int((($xcenter*2)/($inc*10))+0.9);
 	my $numy = int((($ycenter*2)/($inc*10))+0.9);
@@ -868,7 +870,8 @@ sub averydata {
     my $self = shift;
 
  # layout=>[paper-size,[list of product codes], description,
- #          number per sheet, left-offset, top-offset, width, height]
+ #          number per sheet, left-offset, top-offset, width, height,
+ #			x-gap, y-gap]
  #			distances measured in points
 
     return $self->{DATA}{AVERY};
@@ -1413,6 +1416,11 @@ Add bitmaps or images?
 
 =head1 REVISION HISTORY
 
+	Version 2.01 - January 2001
+	Added y_gap tp Avery(tm) labels
+	Updated calibration plot in BasicData to arbitrary paper size
+	Minor repairs to test routine
+	
 	Version 2.0 - December 2000
 	Major revision. Added all of the component and label definition stuff. 
 	Thanks to "Andrew Smith" <asmith at wpequity.com> for suggesting

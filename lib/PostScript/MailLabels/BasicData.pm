@@ -11,7 +11,7 @@ require Exporter;
 # Do not simply export all your public functions/methods/constants.
 @EXPORT = qw( );
 
-$VERSION = '1.01';
+$VERSION = '1.02';
 
 use Carp;
 
@@ -27,7 +27,8 @@ sub new {
 	$self->{POSTNET} = []; # Postscript definition for PostNet font
 	$self->{AVERY} = {}; # Avery (tm) label descriptions
 		 # layout=>[paper-size,[list of product codes], description,
-		 #          number per sheet, left-offset, top-offset, width, height]
+		 #          number per sheet, left-offset, top-offset, width, height,
+		 #			x_gap, y_gap ]
 		 #			distances measured in points
 
     bless $self, $class;
@@ -94,41 +95,42 @@ sub initialize {
     );
 
  # layout=>[paper-size,[list of product codes], description,
- #          number per sheet, left-offset, top-offset, width, height]
+ #          number per sheet, left-offset, top-offset, width, height,
+ #			x_gap, y_gap ]
  #			distances measured in points
 	%{$self->{AVERY}} = (
 	         '5267' => ['Letter', [qw/8167 8667/], 'return address', 80,
-			            undef, undef, undef, undef,
+			            undef, undef, undef, undef, undef, undef,
 			 ],
 	         '5160' => ['Letter', [qw/8160 8250 8460 8560 8660/], 'address', 30,
-			            9, 36, 189, 72,
+			            9, 36, 189, 72, 11.5, 0,
 			 ],
 	         '5161' => ['Letter', [qw/8161/], 'address', 20,
-			            undef, undef, undef, undef,
+			            undef, undef, undef, undef, undef, undef,
 			 ],
 	         '5162' => ['Letter', [qw/8162 8252 8462 8662/], 'address', 14,
-			            undef, undef, undef, undef,
+			            undef, undef, undef, undef, undef, undef,
 			 ],
 	         '5163' => ['Letter', [qw/8163 8253 8463 8663/], 'shipping', 10,
-			            undef, undef, undef, undef,
+			            undef, undef, undef, undef, undef, undef,
 			 ],
 	         '5164' => ['Letter', [qw/8164 8254/], 'shipping', 6,
-			            undef, undef, undef, undef,
+			            undef, undef, undef, undef, undef, undef,
 			 ],
 	         '5165' => ['Letter', [qw/8165 8255 8665/], 'full sheet', 1,
-			            0, 0, 612, 792,
+			            0, 0, 612, 792, 0, 0,
 			 ],
 	         '5266' => ['Letter', [qw/8066 8166 8366/], 'file folder', 30,
-			            undef, undef, undef, undef,
+			            undef, undef, undef, undef, undef, undef,
 			 ],
 	         '6490' => ['Letter', [qw/8096/], '3 1/2 inch diskette, non-wrap', 15,
-			            undef, undef, undef, undef,
+			            undef, undef, undef, undef, undef, undef,
 			 ],
 	         '5196' => ['Letter', [qw/8196/], '3 1/2 inch diskette, wrap', 9,
-			            9, 36, 198, 216,
+			            9, 36, 198, 216, 0, 0,
 			 ],
 	         '5395' => ['Letter', [qw/8395/], 'name badge', 8,
-			            undef, undef, undef, undef,
+			            undef, undef, undef, undef, undef, undef,
 			 ],
 	);
 
@@ -162,13 +164,6 @@ sub Calibrate {
 /makerule { 0 %ycenter% moveto % left edge, center page
             /label (1) def
 			/indx 0 def
-			%	labels set up to handle centimeters up to a paper size of A4
-			%	There is probably a better way to do it, but I'm barely
-			%	literate in Postscript, so this is what I did...
-			/labs [(1) (2) (3) (4) (5) (6) (7) (8) (9) (10) (11) (12) (13)
-			       (14) (15) (16) (17) (18) (19) (20) (21) (22) (23) (24)
-				   (25) (26) (27) (28) (29) (30) (31) (32) (33) (34) (35)
-				   (36) (37) (38) (39) (40) (41) (42) (43) (44) (45)] def
             1 1 %numx% {
 				1 1 4 {
 					pop % clear index from stack
@@ -191,7 +186,7 @@ sub Calibrate {
 				label show
 				label stringwidth pop -1 mul 0 rmoveto
 				/indx indx 1 add def % increment indx
-				/label labs indx get def % increment label
+				/label indx 1 add 3 string cvs def % increment label
 				0 -21 rlineto
 				0 9 rmoveto
 			} for
@@ -220,7 +215,7 @@ sub Calibrate {
 				label show
 				label stringwidth pop -1 mul 0 rmoveto
 				/indx indx 1 add def % increment indx
-				/label labs indx get def % increment label
+				/label indx 1 add 3 string cvs def % increment label
 				-20 0 rlineto
 				8 0 rmoveto
 			} for
@@ -1315,6 +1310,9 @@ PostScript::MailLabels::BasicData - Basic data that is used by the MailLabels
 
 =head1 REVISION HISTORY
 
+	Version 1.02 - January 2001
+	Fixed calibration axis labels to work for arbitrary paper size
+	Added y_gap to Avery data
 	Version 1.01 - December 2000
 	Added pagesize parameter to handle paper other than Letter.
 	Added more axis labels so that A4 calibration plot would work.

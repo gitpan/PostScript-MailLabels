@@ -18,7 +18,7 @@ $labels -> labelsetup(
 
 	$labels->labelsetup( Units =>'metric');
   my $output = $labels->labelcalibration;
-  open (VIEW,"> calibration.ps") || warn "Can't open ghostview for display, $!\n";
+  open (VIEW,"> calibration.ps") || warn "Can't write file calibration.ps, $!\n";
   print VIEW $output;
   close VIEW;
   print "ok 1\n";
@@ -46,7 +46,7 @@ $labels -> labelsetup(
 	                   );
 
 	$output = $labels->labeltest;
-  open (VIEW,"> testboxes.ps") || warn "Can't open ghostview for display, $!\n";
+  open (VIEW,"> testboxes.ps") || warn "Can't write file testboxes.ps, $!\n";
   print VIEW $output;
   close VIEW;
   print "ok 2\n";
@@ -80,7 +80,7 @@ $labels -> labelsetup(
 	$setup = $labels ->	labelsetup( Output_Width => 2.625), 
 
 	$output = $labels->makelabels(\@addrs);
-  open (VIEW,"> labelsheet.ps") || warn "Can't open ghostview for display, $!\n";
+  open (VIEW,"> labelsheet.ps") || warn "Can't write file labelsheet.ps, $!\n";
   print VIEW $output;
   close VIEW;
   print "ok 3\n";

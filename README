@@ -122,6 +122,12 @@ If you do report it, please include :
 
 Revision history for Perl extension PostScript::MailLabels.
 
+2.01 Fri Jan 12 22:07:12 CST 2001
+	Added y_gap tp Avery(tm) labels
+	Updated calibration plot in BasicData to arbitrary paper size
+	Minor repairs to test routine
+
+
 2.00  Mon Jan  1 14:50:37 CST 2001
 	Major revision. Added all of the component and label definition stuff. 
 	Thanks to "Andrew Smith" <asmith at wpequity.com> for suggesting
