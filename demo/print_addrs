@@ -1,9 +1,15 @@
 #!/bin/perl -w
 
+#	This makes use of the nice flatfile addressbook program to be found
+#	at http://www.red.roses.de/~clemens/addressbook/
+#	or
+#	http://addressbook.home.pages.de/ 
+
 #	Open addressbook, select subset, and print
 
+use PostScript::MailLabels 2.0;
 use AddressBook;
-require PostScript::MailLabels;
+
 $labels = PostScript::MailLabels->new;
 
 #	Open address book and select addresses to print
@@ -54,5 +60,8 @@ foreach (sort {$a->[1] cmp $b->[1]} @{$data}) {
 
 my $output = $labels->makelabels(\@addresses);
 
-open (UT,">labels_out") || die "Warning, cannot write labels_out, $!\n";
+open (UT,">labels_out.ps") || die "Warning, cannot write labels_out.ps, $!\n";
 print UT $output;
+close UT;
+
+print "\n******** View labels_out.ps with ghostscript ********\n";

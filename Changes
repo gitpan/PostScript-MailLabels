@@ -1,5 +1,16 @@
 Revision history for Perl extension PostScript::MailLabels.
 
+2.00  Mon Jan  1 14:50:37 CST 2001
+	Major revision. Added all of the component and label definition stuff. 
+	Thanks to "Andrew Smith" <asmith at wpequity.com> for suggesting
+	additional fields and inspiring the generalization.
+	Thanks to Nuno Faria for assisting with the "Europeanization" of
+	the code - it now works for Portuguese, and hopefully for other
+	alphabets as well.
+	Added pagesize so that various paper sizes are actually handled correctly.
+	Minor bug fixes to PostScript::MailLabels::BasicData, now at version 1.01.
+
+
 1.01  Fri Dec 29 10:00:07 CST 2000
 	- bug fix version. 
 		- added parameter checking and also lowercase parameters to reduce errors.

@@ -11,8 +11,9 @@ TABLE OF CONTENTS
 5. Running Tests
 6. Demonstration scripts
 7. Bugs
-8. Copyright
-9. Author Information
+8. Change History
+9. Copyright
+10. Author Information
 
 
 
@@ -20,7 +21,8 @@ TABLE OF CONTENTS
 --------------
 
 This is a pair of modules for calibrating, testing, and printing mailing
-labels on standard label stock.
+labels on standard label stock. It may also be used for other tasks that
+print standard fields onto a regular grid.
 
 The modules are :
 
@@ -36,9 +38,6 @@ MailLabels has three main outputs, in postscript(tm).
 2. A test sheet showing where the edges of the labels should be. This is used 
    to make the final adjustments to the calibration
 3. The address labels themselves
-
-Examples :
-
 
 
 2. AVAILABILITY
@@ -80,9 +79,8 @@ perl Makefile.PL LIB=~/lib PREFIX=~
 5. RUNNING TESTS
 ----------------
 
-The tests require ghostview be installed on your system, since the
-tests primarily consist of creating Postscript(tm) documents and
-piping them into ghostview for viewing.
+Three PostScript(tm) files will be created by the tests. You should view
+these with ghostview, ghostscript, or your favorite viewer. Or print them.
 
 I can't imagine the tests failing, unless you were missing some key part
 of perl, but hey, things happen. If it fails, email me. Try running
@@ -94,12 +92,18 @@ make test TEST_VERBOSE=1 and send me the results.
 In the /demo directory are some scripts that show what it can do. Hope they
 make the documentation clearer.
 
+Current demos include :
+
+demo/diskette.pl - generate labels for 3.5 inch diskettes
+demo/portuguese.pl - generate mailing labels in Portuguese on A4 paper
+demo/std_business.pl - use the standard USPS field designations for labels
+demo/print_addrs - simple script to make labels for Christmas Cards.
+demo/testlabels.pl - same as the example in the pod. Shows everything it can do.
+
 Right now I'm using addressbook from http://home.pages.de/~clemens, which
 is a reasonable ASCII database and Tcl/Tk front-end for editing the database.
-
-It has moved to http://addressbook.home.pages.de/
-or
-http://www.red.roses.de/~clemens/addressbook/
+Or look at these addresses...
+at http://www.red.roses.de/~clemens/addressbook/ or http://addressbook.home.pages.de/
 
 7. BUGS
 -------
@@ -113,14 +117,40 @@ If you do report it, please include :
 - description of problem
 - a *short* piece of code that demonstrates the problem
 
-8. COPYRIGHT
+8. CHANGE HISTORY
+-----------------
+
+Revision history for Perl extension PostScript::MailLabels.
+
+2.00  Mon Jan  1 14:50:37 CST 2001
+	Major revision. Added all of the component and label definition stuff. 
+	Thanks to "Andrew Smith" <asmith at wpequity.com> for suggesting
+	additional fields and inspiring the generalization.
+	Thanks to Nuno Faria for assisting with the "Europeanization" of
+	the code - it now works for Portuguese, and hopefully for other
+	alphabets as well.
+	Added pagesize so that various paper sizes are actually handled correctly.
+	Minor bug fixes to PostScript::MailLabels::BasicData, now at version 1.01.
+
+
+1.01  Fri Dec 29 10:00:07 CST 2000
+	- bug fix version. 
+		- added parameter checking and also lowercase parameters to reduce errors.
+		- fixed PostScript code for boxes to work with newer ghostscript interpreters
+		- added new URL's for addressbook homepage.
+
+1.00  Wed Nov 10 21:32:53 1999
+	- original version; created by h2xs 1.19
+
+
+9. COPYRIGHT
 ------------
 
 Copyright (c) 1999 Alan Jackson. All rights reserved.
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
 
-9. AUTHOR INFORMATION
+10. AUTHOR INFORMATION
 ---------------------
 
 Alan Jackson

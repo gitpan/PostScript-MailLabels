@@ -148,6 +148,10 @@ sub Calibrate {
 % fields to replace are xcenter, ycenter (center of page in points)
 % inc (either 0.1 inch or 0.1 cm in units of points)
 % numx and numy : number of time to loop for x and y axes
+% and pagesize
+
+%	set the pagesize in points here
+%pagesize%
 
 /fontsize 15 def
 /Helvetica findfont fontsize scalefont setfont
@@ -163,7 +167,8 @@ sub Calibrate {
 			%	literate in Postscript, so this is what I did...
 			/labs [(1) (2) (3) (4) (5) (6) (7) (8) (9) (10) (11) (12) (13)
 			       (14) (15) (16) (17) (18) (19) (20) (21) (22) (23) (24)
-				   (25) (26) (27) (28) (29) (30)] def
+				   (25) (26) (27) (28) (29) (30) (31) (32) (33) (34) (35)
+				   (36) (37) (38) (39) (40) (41) (42) (43) (44) (45)] def
             1 1 %numx% {
 				1 1 4 {
 					pop % clear index from stack
@@ -249,6 +254,10 @@ sub TestPage {
 % cols, by (beginning y coord)
 % xadjust, yadjust, and the 4 non-printing border widths,
 % lbor, rbor, tbor, bbor
+% and pagesize
+
+%	set the pagesize in points here
+%pagesize%
 
 % nominal measurements
 /paperwidth %paperwidth% def % total width of paper
@@ -1304,6 +1313,11 @@ PostScript::MailLabels::BasicData - Basic data that is used by the MailLabels
 
  $testpage = $data{TESTPAGE};
 
+=head1 REVISION HISTORY
+
+	Version 1.01 - December 2000
+	Added pagesize parameter to handle paper other than Letter.
+	Added more axis labels so that A4 calibration plot would work.
 
 
 =head1 AUTHOR
