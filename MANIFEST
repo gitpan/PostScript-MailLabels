@@ -1,0 +1,9 @@
+t/Labels.t
+MANIFEST
+README
+Changes
+Makefile.PL
+demo/print_addrs
+demo/AddressBook.pm
+lib/PostScript/MailLabels/BasicData.pm
+lib/PostScript/MailLabels.pm
