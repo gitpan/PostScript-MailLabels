@@ -1,8 +1,21 @@
 Revision history for Perl extension PostScript::MailLabels.
 
+2.10 Sun Aug 29 14:00:53 CDT 2004
+	Added parameters for 5167 Avery (tm) stock - thanks to Daniel J McDonald
+	for supplying the parameters.
+
+	Also added many new Avery (tm) parameters. Thanks to Summer Misherghi
+	who pointed me to http://www.worldlabel.com/Pages/pageaverylabels.htm
+
+	Added new parameter set 'freetype', to allow the user to place a text 
+	string anywhere they want. Particular use is for numbering the pages.
+
+	Code now escapes special PostScript characters (){}[]<>/% in the
+	input so that they will print properly and not crash the PS interpreter.
+
 2.03 Fri Sep 28 07:26:27 CDT 2001
 	Changed to honor user-defined number of columns - thanks to Allan 
-	Engelhardt for suppplying a patch.
+	Engelhardt for supplying a patch.
 
 2.02 Fri Jan 12 22:07:12 CST 2001
         Added y_gap tp Avery(tm) labels

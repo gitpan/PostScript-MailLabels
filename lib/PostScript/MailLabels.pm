@@ -13,7 +13,7 @@ require Exporter;
 # Do not simply export all your public functions/methods/constants.
 @EXPORT = qw( labelsetup labeldata averycode);
 
-$VERSION = '2.03';
+$VERSION = '2.10';
 
 use Carp;
 
@@ -23,6 +23,7 @@ sub new {
     my $self  = {};
 
 	$self->{SETUP} = {};
+	$self->{FREETEXT} = {};
 	$self->{COMPONENTS} = {};
 	$self->{LABELDEF} = [];
 
@@ -138,6 +139,14 @@ sub initialize {
 		#	line 4
 		[ 'postnet', ],
 	   );
+
+	#	Default free text
+
+	%{$self->{FREETEXT}} = (
+		X => 0,
+		Y => 0,
+		Text => '',
+	);
 
 	
 	#	Go get the basic data
@@ -255,6 +264,31 @@ sub definelabel {
 	$self -> {LABELDEF}[$line] = \@comps;
 
 	return ;
+}
+
+##########################################################
+## Free Text                                            ##
+##########################################################
+
+sub freetext {
+	my $self = shift;
+	my %args = @_;
+
+	foreach (keys %args) {
+		if (/^X$/i) {
+			$self->{FREETEXT}{X} = $args{$_};
+		}
+		elsif (/^Y$/i) {
+			$self->{FREETEXT}{Y} = $args{$_};
+		}
+		elsif (/^text$/i) {
+			$self->{FREETEXT}{Text} = $args{$_};
+		}
+		else {
+			print STDERR "Invalid parameter, $_, given to FREETEXT\n";
+		}
+	}
+	return;
 }
 
 ##########################################################
@@ -478,6 +512,8 @@ sub makelabels {
     my $self = shift;
 	my $addrs = shift;
 
+	my $pageno=1;
+
 #---------- set up preamble
 	my $postscript = <<'LABELS';
 %!PS
@@ -518,6 +554,7 @@ LABELS
 	$rbor = $paperwidth - $rbor;
 	my $tbor = $self->{SETUP}{printable_top} ; # top border
 	my $bbor = $self->{SETUP}{printable_bot} ; # bottom border
+print STDERR "--> $tbor\n";
 
 	my $fontsize = $self->{SETUP}{fontsize};
 	my $font = $self->{SETUP}{font};
@@ -609,9 +646,22 @@ LABELS
 		}
 		$lab++;
 		if ($lab > $rows*$cols) { # end of page
+			#	Add a free label, like page number, where ever user wishes
+			#	token %page% is replaced with page number
+			if ($self->{FREETEXT}{Text} ne '') {
+				my $freetext = $self->{FREETEXT}{Text};
+				$freetext =~ s/%page%/$pageno/;
+				$postscript .= $self->{FREETEXT}{X}." ".$self->{FREETEXT}{Y}." moveto ($freetext) show\n";
+			}
 			$postscript .= "showpage\n% ------- start new page\n\n";
+			$pageno++;
 			$lab = 1;
 		}
+	}
+	if ($self->{FREETEXT}{Text} ne '') {
+		my $freetext = $self->{FREETEXT}{Text};
+		$freetext =~ s/%page%/$pageno/;
+		$postscript .= $self->{FREETEXT}{X}." ".$self->{FREETEXT}{Y}." moveto ($freetext) show\n";
 	}
 	$postscript .= "showpage\n% ------- end of data\n" unless $lab == 1;
 
@@ -642,7 +692,7 @@ sub prepare_text {
 	if ($self->{SETUP}{encoding} ne 'StandardEncoding') {
 		foreach my $comp (@{$line}) {
 			my $text = $addrs->[$self->{COMPONENTS}{$comp}->{'index'}] . " "; 
-			push @text, $text;
+			push @text, escape($text);
 		}
 		chop $text[-1];
 		return @text;
@@ -664,7 +714,7 @@ sub prepare_text {
 				$type = $self->{COMPONENTS}{$comp}->{'type'};
 			}
 		}
-		push @text, $text;
+		push @text, escape($text);
 	}
 
 	#	trim back the longest adjustable string, if necessary
@@ -692,10 +742,17 @@ sub prepare_text {
 	@text = ();
 	foreach my $comp (@{$line}) {
 		my $text = $addrs->[$self->{COMPONENTS}{$comp}->{'index'}] . " "; 
-		push @text, $text;
+		push @text, escape($text);
 	}
 	chop $text[-1];
 	return @text;
+}
+
+sub escape {
+	#	escape special characters
+	my $text = shift;
+	$text =~ s/([\(\)<>\[\]{}\/%])/\\$1/g;
+	return $text;
 }
 
 # ****************************************************************
@@ -1166,7 +1223,22 @@ A hash of the label definition will be returned.
     $labels->definelabel(5,'comments-2',);
     $labels->definelabel(6,'comments-3',);
 
+	Free Text (Page Numbering)
 
+	You can place an (almost) constant bit of text on every page.
+	This is really to allow page numbering, slightly generalized.
+
+	$labels->freetext (
+		X => 500,
+		Y => 15,
+		Text => "Page %page%"
+	);
+
+	X and Y are the page coordinates, in *points* (72 points per inch), and
+	remember that Y starts at the bottom and goes up, so (500, 15) puts the
+	text at the bottom right corner of an 8.5x11 sheet.
+
+	The special token %page% will be replaced with the current page number.
 
 =head1 EXAMPLE
 
@@ -1415,6 +1487,17 @@ Add bitmaps or images?
 =back
 
 =head1 REVISION HISTORY
+
+	Version 2.10 Sun Aug 29 14:00:53 CDT 2004
+	Added parameters for 5167 Avery (tm) stock - thanks to Daniel J McDonald
+	for supplying the parameters.
+	Also added many new Avery (tm) parameters. Thanks to Summer Misherghi
+	who pointed me to http://www.worldlabel.com/Pages/pageaverylabels.htm
+	Added new parameter set 'freetype', to allow the user to place a text 
+	string anywhere they want. Particular use is for numbering the pages.
+	Code now escapes special PostScript characters (){}[]<>/% in the
+	input so that they will print properly and not crash the PS interpreter.
+
 
 	Version 2.03 - Fri Sep 28 07:22:28 CDT 2001
 	User-defined number of columns was over-ridden with a calculated

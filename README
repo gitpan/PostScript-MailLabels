@@ -100,10 +100,9 @@ demo/std_business.pl - use the standard USPS field designations for labels
 demo/print_addrs - simple script to make labels for Christmas Cards.
 demo/testlabels.pl - same as the example in the pod. Shows everything it can do.
 
-Right now I'm using addressbook from http://home.pages.de/~clemens, which
-is a reasonable ASCII database and Tcl/Tk front-end for editing the database.
-Or look at these addresses...
-at http://www.red.roses.de/~clemens/addressbook/ or http://addressbook.home.pages.de/
+I now use J-Pilot and my Palm for my address book, and so I have code
+on my webpage (ajackson.org) to handle reading from the J-pilot database
+and generating address labels.
 
 7. BUGS
 -------
@@ -121,6 +120,19 @@ If you do report it, please include :
 -----------------
 
 Revision history for Perl extension PostScript::MailLabels.
+
+2.10 Sun Aug 29 14:00:53 CDT 2004
+	Added parameters for 5167 Avery(tm) stock - thanks to Daniel J McDonald
+	for supplying the parameters.
+
+	Also added many new Avery (tm) parameters. Thanks to Summer Misherghi
+	who pointed me to http://www.worldlabel.com/Pages/pageaverylabels.htm
+
+	Added new parameter set 'freetype', to allow the user to place a text 
+	string anywhere they want. Particular use is for numbering the pages.
+
+	Code now escapes special PostScript characters (){}[]<>/% in the
+	input so that they will print properly and not crash the PS interpreter.
 
 2.02 Fri Jan 12 22:07:12 CST 2001
 	Added y_gap tp Avery(tm) labels
