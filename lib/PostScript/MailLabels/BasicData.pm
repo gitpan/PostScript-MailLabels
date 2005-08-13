@@ -11,7 +11,7 @@ require Exporter;
 # Do not simply export all your public functions/methods/constants.
 @EXPORT = qw( );
 
-$VERSION = '1.10';
+$VERSION = '1.20';
 
 use Carp;
 
@@ -56,7 +56,8 @@ sub initialize {
 		# Some standard paper sizes
 
 	@{$self->{PAPER}} = qw( Letter Legal Ledger Tabloid A0 A1 A2 A3 A4 A5 A6 A7 A8
-                 A9 B0 B1 B2 B3 B4 B5 B6 B7 B8 B9 Envelope10 EnvelopeC5 
+                 A9 B0 B1 B2 B3 B4 B5 B6 B7 B8 B9 Envelope10 Envelope9 Envelope6_3_4
+		 EnvelopeC5
                  EnvelopeDL Folio Executive );
 
 	# Dimensions of standard papers in points (1/72 inches)
@@ -74,6 +75,7 @@ sub initialize {
                B6 => 363,         B7 => 258,
                B8 => 181,         B9 => 127, 
                B10 => 91,         Envelope10 => 297,
+	       Envelope9 => 279,  Envelope6_3_4 => 261,
                EnvelopeC5 => 461, EnvelopeDL => 312,
                Folio => 595,      Executive => 522
             );
@@ -90,6 +92,7 @@ sub initialize {
                B6 => 516,         B7 => 363,
                B8 => 258,         B9 => 181, 
                B10 => 127,        Envelope10 => 684,
+	       Envelope9 => 639,  Envelope6_3_4 => 468,
                EnvelopeC5 => 648, EnvelopeDL => 624,
                Folio => 935,      Executive => 756
     );
@@ -169,7 +172,7 @@ sub initialize {
 			'5265' => ['Letter',[qw/5265/], 'full sheet', 1,
 					0, 0, 612, 792, 0, 0,
 			],
-	         '5266' => ['Letter', [qw/8066 8166 8366/], 'file folder', 30,
+	        '5266' => ['Letter', [qw/8066 8166 8366/], 'file folder', 30,
 			            undef, undef, undef, undef, undef, undef,
 			 ],
 			'5267' => ['Letter',[qw/5267/], 'return address', 80,
@@ -184,7 +187,7 @@ sub initialize {
 			'5295' => ['Letter',[qw/5295/], 'special', 6,
 					46.1232, 34.8768, 238.5, 238.5, 42.7536, 3.3768,
 			],
-	         '5395' => ['Letter', [qw/8395/], 'name badge', 8,
+	        '5395' => ['Letter', [qw/8395/], 'name badge', 8,
 			            undef, undef, undef, undef, undef, undef,
 			 ],
 			'5663' => ['Letter',[qw/5663/], 'address', 10,
@@ -226,7 +229,7 @@ sub initialize {
 			'5980' => ['Letter',[qw/5980/], 'address', 30,
 					13.5, 36, 189, 72, 9, 0,
 			],
-	         '6490' => ['Letter', [qw/8096/], '3 1/2 inch diskette, non-wrap', 15,
+	        '6490' => ['Letter', [qw/8096/], '3 1/2 inch diskette, non-wrap', 15,
 			            undef, undef, undef, undef, undef, undef,
 			 ],
 			'8160' => ['Letter',[qw/8160/], 'address', 30,
@@ -271,7 +274,7 @@ measure tiny distances.
 	         '5267' => ['Letter', [qw/8167 8667/], 'return address', 80,
 			            undef, undef, undef, undef, undef, undef,
 			 ],
-	         '5160' => ['Letter', [qw/8160 8250 8460 8560 8660/], 'address', 30,
+	         '5160' => ['Letter', [qw/5160 8160 8250 8460 8560 8660/], 'address', 30,
 			            9, 36, 189, 72, 11.5, 0,
 			 ],
 	         '5161' => ['Letter', [qw/8161/], 'address', 20,
@@ -326,6 +329,8 @@ sub Calibrate {
 
 %	set the pagesize in points here
 %pagesize%
+gsave
+%translate%
 
 /fontsize 15 def
 /Helvetica findfont fontsize scalefont setfont
@@ -397,6 +402,7 @@ sub Calibrate {
 makerule % calibrate
 		  
 showpage
+grestore
 %------------- end of Calibrate definition
 CALIBRATE
 
@@ -425,6 +431,8 @@ sub TestPage {
 
 %	set the pagesize in points here
 %pagesize%
+gsave
+%translate%
 
 % nominal measurements
 /paperwidth %paperwidth% def % total width of paper
@@ -550,6 +558,7 @@ rowmsg {
 	(Bottom gap too large, last row cannot be printed) show
 } if
 showpage
+grestore
 %------------- end of TestPage definition
 TESTPAGE
 
@@ -871,6 +880,15 @@ sub font_metrics {
 228, 228, 385, 456, 182, 456, 456, 410, 456, 456, 228, 456, 456, 182, 182, 
 410, 182, 683, 456, 456, 456, 456, 273, 410, 228, 456, 410, 592, 410, 410, 
 410, 274, 213, 274, 479, 
+],
+'Hershey-Script-Simplex-Oblique' => [
+500, 321, 571, 679, 679, 786, 857, 321, 464, 464, 536, 857, 321, 857,
+286, 714, 679, 679, 679, 679, 679, 679, 679, 679, 679, 679, 321, 321,
+786, 857, 786, 679, 893, 643, 750, 643, 750, 643, 643, 750, 786, 536,
+464, 786, 607, 1107, 786, 679, 821, 714, 821, 643, 607, 786, 750, 929,
+786, 750, 679, 429, 200, 429, 500, 500, 321, 500, 429, 321, 500, 286,
+214, 464, 464, 179, 179, 429, 214, 821, 571, 429, 464, 464, 393, 321,
+250, 464, 464, 679, 500, 464, 429, 429, 214, 429, 786,
 ],
 'NewCenturySchlbk-Bold' => [
 287, 296, 333, 574, 574, 833, 852, 241, 389, 389, 500, 606, 278, 333, 278, 
@@ -1482,6 +1500,8 @@ PostScript::MailLabels::BasicData - Basic data that is used by the MailLabels
 
 =head1 REVISION HISTORY
 
+	Version 1.20 - August 2005
+	Added patch from Jonathan Kamens
 	Version 1.10 - August 2004
 	Added 5167 Avery stock
 	Version 1.02 - January 2001

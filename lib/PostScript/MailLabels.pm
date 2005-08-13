@@ -13,7 +13,7 @@ require Exporter;
 # Do not simply export all your public functions/methods/constants.
 @EXPORT = qw( labelsetup labeldata averycode);
 
-$VERSION = '2.10';
+$VERSION = '2.21';
 
 use Carp;
 
@@ -64,6 +64,7 @@ sub initialize {
 		#	paper size
 
 		papersize		=> 'Letter',
+		orientation		=> 'portrait',
 			
 		#	printable area on physical page
 
@@ -300,13 +301,12 @@ sub labelsetup {
 	my %args = @_;
 
 	my %params;
-	@params{ qw / papersize printable_left printable_right printable_top printable_bot output_top
+	#	when adding a parameter, be sure to increment the array at the end of the statement.
+	@params{ qw / papersize orientation printable_left printable_right printable_top printable_bot output_top
 		output_left output_width output_height x_gap y_gap number x_adjust y_adjust
-		postnet font fontsize units firstlabel avery columns encoding / } = (0..21);
+		postnet font fontsize units firstlabel avery columns encoding / } = (0..22);
 
-	my @papers = qw / Letter Legal Ledger Tabloid A0 A1 A2 A3 A4 A5 A6 A7 A8
-                 A9 B0 B1 B2 B3 B4 B5 B6 B7 B8 B9 Envelope10 EnvelopeC5 
-                 EnvelopeDL Folio Executive / ;
+	my @papers = @{$self->{DATA}{PAPER}};
 
 	my @encodings = qw / ISOLatin1Encoding StandardEncoding / ;
 
@@ -367,6 +367,13 @@ sub labelsetup {
 				}
 				$self->{SETUP}{lc($_)} = $args{$_}; 
 			}
+			elsif (lc($_) eq 'orientation') {
+			    my($val) = lc($args{$_});
+			    if ($val ne 'portrait' && $val ne 'landscape') {
+				die "Invalid orientation \"$args{$_}\" -- must be \"portrait\" or \"landscape\"\n";
+			    }
+			    $self->{SETUP}{lc($_)} = $val;
+			}
 			else {
 				$self->{SETUP}{lc($_)} = lc($args{$_}); 
 				$args{lc($_)} = $args{$_};
@@ -407,9 +414,9 @@ if (defined $self->{SETUP}{avery} && $self->{SETUP}{avery} ne '') {
 		my $pwidth = $self->{SETUP}{output_width}*$self->{SETUP}{columns} 
 					 + $self->{SETUP}{x_gap}*($self->{SETUP}{columns}-1)
 					 + $self->{SETUP}{output_left}*2;
-		if (abs($pwidth - papersize($self)->[0]) > $self->{SETUP}{output_width}/2) {
+		if (abs($pwidth - papersize($self, 1)->[0]) > $self->{SETUP}{output_width}/2) {
 			print STDERR "Sum of label widths ($pwidth) differs from paper width (",
-			              papersize($self)->[0],
+			              papersize($self, 1)->[0],
 			             ") by > ",$self->{SETUP}{output_width}/2," points\n";
 			die;
 		}
@@ -439,7 +446,7 @@ sub labelcalibration {
 
 	#	Create a postscript file that will place centered axes on the page
 	#	marked off in inches or centimeters, that will allow the user to
-	#	actually see what the rprintable area of their printer is.
+	#	actually see what the printable area of their printer is.
 
 	#	Calculate the following quantites to place in the postscript file :
 	#	x and y coordinates of page center in points
@@ -448,8 +455,10 @@ sub labelcalibration {
 	
 	my $paperwidth = papersize($self)->[0] ; # total width of paper
 	my $paperheight = papersize($self)->[1] ; # total height of paper
-	my $xcenter = papersize($self)->[0]/2;
-	my $ycenter = papersize($self)->[1]/2;
+	my $xcenter = papersize($self, 1)->[0]/2;
+	my $ycenter = papersize($self, 1)->[1]/2;
+	my $landscape = ($self->{SETUP}{orientation} eq 'landscape');
+        my $translate = $landscape ? "$paperwidth 0 translate 90 rotate" : '';
 
 	my $inc = 7.2;
 	if ($self->{SETUP}{units} eq 'metric') {$inc = 2.8346457;}
@@ -460,6 +469,7 @@ sub labelcalibration {
 	my $postscript = $self->{DATA}{CALIBRATE};
 
 	$postscript =~ s/%pagesize%/<< \/PageSize [$paperwidth $paperheight]>> setpagedevice/g;
+	$postscript =~ s/%translate%/$translate/g;
 	$postscript =~ s/%xcenter%/$xcenter/g;
 	$postscript =~ s/%ycenter%/$ycenter/g;
 	$postscript =~ s/%inc%/$inc/g;
@@ -480,12 +490,18 @@ sub labeltest {
 	my $cols = $self->{SETUP}{columns} || int(papersize($self)->[0] / ($self->{SETUP}{x_gap} + $self->{SETUP}{output_width}));
 	my $rows = $self->{SETUP}{number}/$cols;
 
-	my $paperwidth = papersize($self)->[0] ; # total width of paper
-	my $paperheight = papersize($self)->[1] ; # total height of paper
+	my $physical_paperwidth = papersize($self)->[0] ; # total width of paper
+	my $physical_paperheight = papersize($self)->[1] ; # total height of paper
+	my $paperwidth = papersize($self, 1)->[0] ;
+	my $paperheight = papersize($self, 1)->[1] ;
 
-	$postscript =~ s/%pagesize%/<< \/PageSize [$paperwidth $paperheight]>> setpagedevice/g;
-	$postscript =~ s/%paperwidth%/papersize($self)->[0]/e ; # total width of paper
-	$postscript =~ s/%paperheight%/papersize($self)->[1]/e ; # total height of paper
+	my $landscape = ($self->{SETUP}{orientation} eq 'landscape');
+        my $translate = $landscape ? "$physical_paperwidth 0 translate 90 rotate" : '';
+
+	$postscript =~ s/%pagesize%/<< \/PageSize [$physical_paperwidth $physical_paperheight]>> setpagedevice/g;
+	$postscript =~ s/%translate%/$translate/g;
+	$postscript =~ s/%paperwidth%/$paperwidth/g ; # total width of paper
+	$postscript =~ s/%paperheight%/$paperheight/g ; # total height of paper
 	$postscript =~ s/%boxwidth%/$self->{SETUP}{output_width}/e ; # label width
 	$postscript =~ s/%boxheight%/$self->{SETUP}{output_height}/e ; # label height
 	$postscript =~ s/%xgap%/$self->{SETUP}{x_gap}/e ; # x gap between labels
@@ -529,10 +545,18 @@ sub makelabels {
 
 LABELS
 #---------- end preamble
-	my $paperwidth = papersize($self)->[0] ; # total width of paper
-	my $paperheight = papersize($self)->[1] ; # total height of paper
+	my $physical_paperwidth = papersize($self)->[0] ; # total width of paper
+	my $physical_paperheight = papersize($self)->[1] ; # total height of paper
+	my $paperwidth = papersize($self, 1)->[0] ;
+	my $paperheight = papersize($self, 1)->[1] ;
+	my $landscape = ($self->{SETUP}{orientation} eq 'landscape');
+        my $translate = $landscape ? "%\tlandscape orientation\n$paperheight 0 translate 90 rotate\n" : '';
+
 	$postscript .= "%	set the page size\n" .
-	               "<< /PageSize [$paperwidth $paperheight]>> setpagedevice\n";
+	               "<< /PageSize [$physical_paperwidth $physical_paperheight]>> setpagedevice\n";
+
+        $postscript .= "gsave\n" . $translate;
+
 	if ($self->{SETUP}{postnet} eq 'yes') {
 		$postscript .= $self->{DATA}{POSTNET}; # add in barcode stuff
 	}
@@ -665,6 +689,7 @@ print STDERR "--> $tbor\n";
 	}
 	$postscript .= "showpage\n% ------- end of data\n" unless $lab == 1;
 
+	$postscript .= "grestore\n";
 
 	return $postscript;
 }
@@ -704,6 +729,10 @@ sub prepare_text {
 	my ($type, $adjcomp, $maxlen, $totlen) = (0,0,0,0);
 	my $strlen = $width;
 	foreach my $comp (@{$line}) {
+		if (!defined $addrs->[$self->{COMPONENTS}{$comp}->{'index'}]) {
+			print STDERR "Empty address field encountered. Use a blank in empty fields.\n";
+			$addrs->[$self->{COMPONENTS}{$comp}->{'index'}] = " ";
+		}
 		my $text = $addrs->[$self->{COMPONENTS}{$comp}->{'index'}] . " "; 
 		my $length = stringlen($self,"$text",$self->{COMPONENTS}{$comp}->{font}, $fontsize);
 		$totlen += $length;
@@ -938,9 +967,17 @@ sub averydata {
 #		Return width & height of paper
 sub papersize {
     my $self = shift;
+    my $logical = shift;
 
-    return [$self->{DATA}->{WIDTH}{$self->{SETUP}{papersize}},
-	        $self->{DATA}->{HEIGHT}{$self->{SETUP}{papersize}},];
+    my($width) = $self->{DATA}->{WIDTH}{$self->{SETUP}{papersize}};
+    my($height) = $self->{DATA}->{HEIGHT}{$self->{SETUP}{papersize}};
+
+    if (!$logical || $self->{SETUP}{orientation} eq 'portrait') {
+	return [$width, $height];
+    }
+    else {
+	return [$height, $width];
+    }
 }
 
 # ****************************************************************
@@ -1042,22 +1079,17 @@ control the fonts on a per-field basis. Not the size, yet - later pilgrim.
 
 Parameters you can set :
 
-Paper size, borders on the printable area (many printers will not print
-right up to the edge of the paper), where the labels live on the page
-and how big they are, overall x-y shift of page, whether or not to 
-print PostNET barcode, font, fontsize, units (english or metric),
-which Avery(tm) product code to use, and where the first label starts.
+Paper size, orientation, borders on the printable area (many printers will not
+print right up to the edge of the paper), where the labels live on the page and
+how big they are, overall x-y shift of page, whether or not to print PostNET
+barcode, font, fontsize, units (english or metric), which Avery(tm) product
+code to use, and where the first label starts.
 
 This last needs explanation. If you have a partially used sheet of labels,
 you might want to use it up. So you count the missing labels, starting
 at the upper left, and counting across, and then down. For example, if
 I have 3 columns of labels, label five is the second label in the second
 row.
-
-The Avery(tm) label codes are woefully incomplete. I can't find the Avery(tm)
-specs anywhere, so the ones that are in there are for products I personally
-own.  I e-mailed Avery(tm) and they gave me a long distance phone number to
-call.
 
 If you have an Avery(tm) product that I haven't defined, send me the specs and 
 I'll add it.
@@ -1083,6 +1115,11 @@ The barcode will be either a 5-digit zip or 9 digit zip-plus code. I could
 also create the delivery point code, but since my mailing labels are not
 even wide enough for the 9 digit zip-plus, I haven't bothered. I have read
 the USPS spec on the barcode, and so far as I can tell, I meet the spec.
+Barcode is complicated. There are 3 flavors. 5-digit zip, 9-digit zip,
+and Delivery Point barcode which includes the street address. So the
+postal bar code can be 32, 52, or 62 bars long. If you start comparing
+what I produce with what you see on your mail, they may look different.
+http://pe.usps.gov/cpim/ftp/pubs/Pub25/Pub25.pdf can answer all questions.
 
 labelsetup :
     
@@ -1096,8 +1133,11 @@ A hash of the label definition will be returned.
         PaperSize        => 'Letter',
         options are : 
                     Letter Legal Ledger Tabloid A0 A1 A2 A3 A4 A5 A6 A7 A8
-                    A9 B0 B1 B2 B3 B4 B5 B6 B7 B8 B9 Envelope10 EnvelopeC5 
-                    EnvelopeDL Folio Executive 
+                    A9 B0 B1 B2 B3 B4 B5 B6 B7 B8 B9 Envelope10 Envelope9
+		    Envelope6_3_4 EnvelopeC5 EnvelopeDL Folio Executive 
+
+		orientation      => 'portrait',
+			the other possibility is 'landscape'
             
         #   printable area on physical page - these numbers represent border widths
         #    typical values might be 0.25 inches
@@ -1487,6 +1527,46 @@ Add bitmaps or images?
 =back
 
 =head1 REVISION HISTORY
+
+	Version 2.21 Sat Aug 13 17:43:36 CDT 2005
+	Minor repairs to fix what patches broke (ISOLatin1Encoding), update docs
+		and examples.
+
+	Version 2.20 Sat Aug 13 16:39:54 CDT 2005
+	Applied patches from Jonathan Kamens
+	1) Add support for No. 9 and No. 6 3/4 envelopes.
+
+	2) Add 5160 to the list of Avery product codes for the layout code 5160
+	   (since 5160 is the product code that appeared on the box of labels that
+       I bought).
+
+	3) Add a new "orientation" setup option which can be set to "portrait"
+	   or "landscape", with "portrait" being the default.
+
+	4) Modify the generated PostScript code so that if we're in landscape
+	   mode, we rotate and translate appropriately.
+
+	5) Wrap the generated PostScript code in "gsave ... grestore" so that
+	   the translation and rotation is protected (this way, e.g., you can
+	   have both a calibration page and a label test page in the same
+	   PostScript file without over-rotating and over-translating).
+
+	6) Don't hard-code the list of valid paper sizes in MailLabels.pm;
+	   instead, get it from BasicData.pm.
+
+	7) To support the new landscape stuff, add a new parameter to the
+	   papersize() function, "logical", to indicate whether the caller
+	   wants the physical page size or the logical one.  The logical page
+	   size has the width and height flipped when in landscape mode.
+	   Modify calls to papersize() when appropriate to use the logical
+	   rather than physical page size.
+
+	8) Fix a typo in a comment.
+
+	Version 2.11 Sat Nov 13 14:42:37 CST 2004
+	Put in a trap to catch empty fields and set them to blank with a
+	warning (Joe Zacky found this one). Also update docs to explain the 
+	barcode stuff, since if you look closely, it can be confusing.
 
 	Version 2.10 Sun Aug 29 14:00:53 CDT 2004
 	Added parameters for 5167 Avery (tm) stock - thanks to Daniel J McDonald
