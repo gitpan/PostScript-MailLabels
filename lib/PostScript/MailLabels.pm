@@ -13,7 +13,7 @@ require Exporter;
 # Do not simply export all your public functions/methods/constants.
 @EXPORT = qw( labelsetup labeldata averycode);
 
-$VERSION = '2.21';
+$VERSION = '2.22';
 
 use Carp;
 
@@ -621,15 +621,38 @@ print STDERR "--> $tbor\n";
 	#	set the desired font and size
 	#The following lines have been modified to account for Portuguese characters
 	# Nuno Faria, 2000/Mars/03
-	$postscript .= "/$font findfont\n".
-	               "dup length dict begin\n".
-		           "{1 index /FID ne {def} {pop pop} ifelse} forall\n".
-			   	   "/Encoding $self->{SETUP}{encoding} def\n".
-			       "currentdict\n".
-			       "end\n".
-		           "/$font exch definefont pop\n";
+#	$postscript .= "/$font findfont\n".
+#	               "dup length dict begin\n".
+#		           "{1 index /FID ne {def} {pop pop} ifelse} forall\n".
+#			   	   "/Encoding $self->{SETUP}{encoding} def\n".
+#			       "currentdict\n".
+#			       "end\n".
+#		           "/$font exch definefont pop\n";
 	#End of modifications
+	# new mods by Juan Manuel Calvo to generalize the process (Nov 2005)
+##### make a list of fonts
 
+        my %fontlist;
+        foreach (@{$addrs}){
+                foreach my $line (@{$self->{LABELDEF}}) {
+                        foreach my $comp (@{$line}) {
+                                $fontlist{$self->{COMPONENTS}{$comp}->{font}}++;
+                        }
+                }
+        }
+        $fontlist{$font}++;
+####### define enconding for all fonts
+        for my $k (keys %fontlist ) {        
+            $postscript .= "% encoding for $k\n" .
+                           "/$k findfont\n".
+                           "dup length dict begin\n".
+                               "{1 index /FID ne {def} {pop pop} ifelse} forall\n".
+                                       "/Encoding $self->{SETUP}{encoding} def\n".
+                                   "currentdict\n".
+                                   "end\n".
+                               "/$k exch definefont pop\n";
+        }
+#####
 
 	$postscript .= "/$font findfont $fontsize scalefont setfont\n".
 	               "/fontsize $fontsize def\n";
@@ -1527,6 +1550,11 @@ Add bitmaps or images?
 =back
 
 =head1 REVISION HISTORY
+
+	Version 2.22 Sat Nov 26 14:25:39 CST 2005
+	A small patch correcting the encoding for all fonts, with this patch you
+	can use different fonts with IsoLatin encoding. Supplied by Ing. Juan 
+	Manuel Calvo, Director del Centro de Cómputos, Universidad del CEMA
 
 	Version 2.21 Sat Aug 13 17:43:36 CDT 2005
 	Minor repairs to fix what patches broke (ISOLatin1Encoding), update docs

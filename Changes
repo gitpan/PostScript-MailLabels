@@ -1,5 +1,45 @@
 Revision history for Perl extension PostScript::MailLabels.
 
+2.22 Sat Nov 26 14:25:39 CST 2005
+	A small patch correcting the encoding for all fonts, with this patch you
+	can use different fonts with IsoLatin encoding. Supplied by Ing. Juan 
+	Manuel Calvo, Director del Centro de Cómputos, Universidad del CEMA
+
+2.21 Sat Aug 13 17:43:36 CDT 2005
+	Minor repairs to fix what patches broke (ISOLatin1Encoding), update docs
+		and examples.
+
+2.20 Sat Aug 13 16:39:54 CDT 2005
+	Applied patches from Jonathan Kamens
+	1) Add support for No. 9 and No. 6 3/4 envelopes.
+
+	2) Add 5160 to the list of Avery product codes for the layout code 5160
+	   (since 5160 is the product code that appeared on the box of labels that
+       I bought).
+
+	3) Add a new "orientation" setup option which can be set to "portrait"
+	   or "landscape", with "portrait" being the default.
+
+	4) Modify the generated PostScript code so that if we're in landscape
+	   mode, we rotate and translate appropriately.
+
+	5) Wrap the generated PostScript code in "gsave ... grestore" so that
+	   the translation and rotation is protected (this way, e.g., you can
+	   have both a calibration page and a label test page in the same
+	   PostScript file without over-rotating and over-translating).
+
+	6) Don't hard-code the list of valid paper sizes in MailLabels.pm;
+	   instead, get it from BasicData.pm.
+
+	7) To support the new landscape stuff, add a new parameter to the
+	   papersize() function, "logical", to indicate whether the caller
+	   wants the physical page size or the logical one.  The logical page
+	   size has the width and height flipped when in landscape mode.
+	   Modify calls to papersize() when appropriate to use the logical
+	   rather than physical page size.
+
+	8) Fix a typo in a comment.
+
 2.11 Sat Nov 13 14:42:37 CST 2004
 	Put in a trap to catch empty fields and set them to blank with a
 	warning (Joe Zacky found this one). Also update docs to explain the 
