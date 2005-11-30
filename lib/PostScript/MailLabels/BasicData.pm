@@ -11,7 +11,7 @@ require Exporter;
 # Do not simply export all your public functions/methods/constants.
 @EXPORT = qw( );
 
-$VERSION = '1.20';
+$VERSION = '1.21';
 
 use Carp;
 
@@ -189,6 +189,9 @@ sub initialize {
 			],
 	        '5395' => ['Letter', [qw/8395/], 'name badge', 8,
 			            undef, undef, undef, undef, undef, undef,
+			 ],
+	        '5526' => ['Letter', [qw/5526/], 'shipping label', 2,
+			            0.0, 0.0, 612.0, 396.0, 0.0, 0.0,
 			 ],
 			'5663' => ['Letter',[qw/5663/], 'address', 10,
 					0, 36, 306, 144, 0, 0,
@@ -1500,6 +1503,8 @@ PostScript::MailLabels::BasicData - Basic data that is used by the MailLabels
 
 =head1 REVISION HISTORY
 
+	Version 1.21 Tue Nov 29 20:55:38 CST 2005
+	Added Avery 5526 labels per request of Wallace Winfrey
 	Version 1.20 - August 2005
 	Added patch from Jonathan Kamens
 	Version 1.10 - August 2004

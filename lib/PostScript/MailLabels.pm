@@ -13,7 +13,7 @@ require Exporter;
 # Do not simply export all your public functions/methods/constants.
 @EXPORT = qw( labelsetup labeldata averycode);
 
-$VERSION = '2.22';
+$VERSION = '2.23';
 
 use Carp;
 
@@ -1550,6 +1550,9 @@ Add bitmaps or images?
 =back
 
 =head1 REVISION HISTORY
+
+	Version 2.23 Tue Nov 29 20:55:38 CST 2005
+	Added Avery 5526 labels per request of Wallace Winfrey
 
 	Version 2.22 Sat Nov 26 14:25:39 CST 2005
 	A small patch correcting the encoding for all fonts, with this patch you

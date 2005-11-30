@@ -1,0 +1,145 @@
+%!PS
+
+% This code copyright 1999, Alan Jackson, alan@ajackson.org and is
+% protected under the Open Source license. Code may be copied and
+% modified so long as attribution to the original author is
+% maintained.
+
+% fields to replace are many :
+% paperwidth, paperheight, boxwidth, boxheight, xgap, ygap, rows,
+% cols, by (beginning y coord)
+% xadjust, yadjust, and the 4 non-printing border widths,
+% lbor, rbor, tbor, bbor
+% and pagesize
+
+%	set the pagesize in points here
+<< /PageSize [612 792]>> setpagedevice
+gsave
+
+
+% nominal measurements
+/paperwidth 612 def % total width of paper
+/paperheight 792 def % total height of paper
+/boxwidth 612 def  % label width
+/boxheight 396 def  % label height
+/xgap 0 def % x gap between labels
+/ygap 0 def % y gap between labels
+/rows 2 def % rows of labels on each page
+/cols 1 def % columns of labels on each page
+/by 0 def % gap between top of first label and top of page
+
+% adjustments
+/xadjust 0 def % adjustment if paper not x centered 
+/yadjust 0 def % adjustment if paper not y centered
+/lbor 0 def % left border
+/rbor paperwidth 0 sub def % right border coordinate
+/tbor 0 def % top border
+/bbor 0 def % bottom border
+
+/lbor lbor xadjust sub store
+/rbor rbor xadjust sub store
+
+% calculated values
+/bx paperwidth cols 1 sub xgap mul boxwidth cols mul add sub 2 div store % begin x
+
+/fontsize 15 def
+/Helvetica findfont fontsize scalefont setfont
+1 setlinewidth
+
+/prtnum { 3 string cvs show} def % diagnostic routine to print a number
+
+% printable area vertically 
+% if not enough room, adjust number of rows...
+/rowmsg false def % print message about missing row?
+rows boxheight mul by add paperheight bbor sub gt {
+	/rows rows 1 sub store /rowmsg true def} if
+
+%	draw a box
+/makebox { 
+           width 0            rlineto
+		   gsave
+		   adj_r {[5] 0 setdash} if
+		   0 -1 boxheight mul rlineto stroke
+		   grestore
+		   0 -1 boxheight mul rmoveto
+		   -1 width mul 0     rlineto
+		   gsave
+		   adj_l {[5] 0 setdash} if
+		   0 boxheight        rlineto stroke
+		   grestore
+		   0 boxheight        rmoveto
+		   closepath
+		   stroke
+         } def
+
+/y paperheight by sub yadjust sub def % initial y position
+/x bx def
+
+% print messages about xadjust and yadjust
+gsave
+	2 setlinewidth
+	x y moveto
+	20 -20 rmoveto
+	(Slide test sheet right) show
+	x y moveto
+	20 -40 rmoveto
+	(x-adjust positive) show
+	x y moveto
+	20 -60 rmoveto
+	60 0 rlineto 
+		gsave
+		-10 -5 rlineto 0 10 rlineto 10 -5 rlineto closepath fill
+		grestore
+	stroke
+
+	x y moveto
+	20 -20 rmoveto
+	boxwidth 0 rmoveto
+	gsave (Slide test sheet down) show 
+	20 0 rmoveto
+	0 -60 rlineto
+	gsave
+		-5 10 rlineto 10 0 rlineto -5 -10 rlineto closepath fill
+	grestore
+	stroke
+	grestore
+	0 -20 rmoveto
+	gsave (y-adjust positive) show grestore
+grestore
+
+/boxes  { 1 1 rows {
+             /x bx store
+			 0 y moveto
+             1 1 cols {
+				/adj_l false def % was left box edge adjusted?
+				/adj_r false def % was right box edge adjusted?
+			    x lbor lt {/adj_l true def} if % set adjusted start x flag
+				/sx x store
+				adj_l {/sx lbor store} if
+			    %/sx x lbor lt lbor x ifelse store % set adjusted start x
+				/x x boxwidth add store
+			    x rbor gt {/adj_r true def} if % set adjusted start x flag
+				/ex x store
+				adj_r {/se rbor store} if
+				%/ex x rbor gt rbor x ifelse store % set adjusted end x
+				/x x xgap add store
+				/width ex sx sub store
+				sx xadjust add y moveto
+				makebox
+			 } for
+			 /y y boxheight sub ygap sub store
+          } for
+        } def
+
+boxes
+
+%	If I had to delete the bottom row, plop out a message now
+rowmsg {
+	paperwidth 5 div y boxheight 2 div sub moveto
+	/fontsize 20 def
+	/Helvetica findfont fontsize scalefont setfont
+	(Bottom gap too large, last row cannot be printed) show
+} if
+showpage
+grestore
+%------------- end of TestPage definition

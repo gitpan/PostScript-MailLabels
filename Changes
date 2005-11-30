@@ -1,5 +1,8 @@
 Revision history for Perl extension PostScript::MailLabels.
 
+2.23 Tue Nov 29 20:55:38 CST 2005
+	Added Avery 5526 labels per request of Wallace Winfrey
+
 2.22 Sat Nov 26 14:25:39 CST 2005
 	A small patch correcting the encoding for all fonts, with this patch you
 	can use different fonts with IsoLatin encoding. Supplied by Ing. Juan 
