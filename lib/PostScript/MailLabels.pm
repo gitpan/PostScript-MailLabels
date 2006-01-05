@@ -13,7 +13,7 @@ require Exporter;
 # Do not simply export all your public functions/methods/constants.
 @EXPORT = qw( labelsetup labeldata averycode);
 
-$VERSION = '2.23';
+$VERSION = '2.24';
 
 use Carp;
 
@@ -803,7 +803,7 @@ sub prepare_text {
 sub escape {
 	#	escape special characters
 	my $text = shift;
-	$text =~ s/([\(\)<>\[\]{}\/%])/\\$1/g;
+	$text =~ s/([\200-\377])/sprintf "\\%3.3o", ord $1/eg;
 	return $text;
 }
 
@@ -1550,6 +1550,9 @@ Add bitmaps or images?
 =back
 
 =head1 REVISION HISTORY
+
+	Version 2.24 Wed Jan  4 19:57:57 CST 2006
+	Patch from Robert Harris to make output 7-bit clean
 
 	Version 2.23 Tue Nov 29 20:55:38 CST 2005
 	Added Avery 5526 labels per request of Wallace Winfrey

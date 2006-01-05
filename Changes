@@ -1,5 +1,8 @@
 Revision history for Perl extension PostScript::MailLabels.
 
+2.24 Wed Jan  4 19:57:57 CST 2006
+	Patch from Robert Harris to make output 7-bit clean
+
 2.23 Tue Nov 29 20:55:38 CST 2005
 	Added Avery 5526 labels per request of Wallace Winfrey
 
