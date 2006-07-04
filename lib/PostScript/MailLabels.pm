@@ -13,7 +13,7 @@ require Exporter;
 # Do not simply export all your public functions/methods/constants.
 @EXPORT = qw( labelsetup labeldata averycode);
 
-$VERSION = '2.24';
+$VERSION = '2.25';
 
 use Carp;
 
@@ -578,7 +578,6 @@ LABELS
 	$rbor = $paperwidth - $rbor;
 	my $tbor = $self->{SETUP}{printable_top} ; # top border
 	my $bbor = $self->{SETUP}{printable_bot} ; # bottom border
-print STDERR "--> $tbor\n";
 
 	my $fontsize = $self->{SETUP}{fontsize};
 	my $font = $self->{SETUP}{font};
@@ -803,6 +802,8 @@ sub prepare_text {
 sub escape {
 	#	escape special characters
 	my $text = shift;
+	$text =~ s/\(/\\(/g;
+	$text =~ s/\)/\\)/g;
 	$text =~ s/([\200-\377])/sprintf "\\%3.3o", ord $1/eg;
 	return $text;
 }
@@ -1550,6 +1551,9 @@ Add bitmaps or images?
 =back
 
 =head1 REVISION HISTORY
+
+	Version 2.25 Tue Jul  4 14:37:34 CDT 2006
+	Escape open and close parens in postscript code at request of Thomas Byström
 
 	Version 2.24 Wed Jan  4 19:57:57 CST 2006
 	Patch from Robert Harris to make output 7-bit clean

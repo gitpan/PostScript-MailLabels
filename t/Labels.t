@@ -92,7 +92,7 @@ $labels -> labelsetup(
 1;
 
 __DATA__
-John and Jane:Doe
+John and Jane (esq):Doe
 1234 Robin Ave 
 Katy:Tx:77453
 
