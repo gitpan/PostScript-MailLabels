@@ -1,5 +1,9 @@
 Revision history for Perl extension PostScript::MailLabels.
 
+2.26 Sun Oct 19 16:22:56 CDT 2008
+    Add Userdefined as an option for papersize at request of Jim Albert
+    Apply patch from brian d. foy for Avery 8923 labels, plus a documentation adjustment
+
 2.25 Tue Jul  4 14:37:34 CDT 2006
 	Escape open and close parens in postscript code at request of Thomas
 	Byström

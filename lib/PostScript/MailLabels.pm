@@ -13,7 +13,7 @@ require Exporter;
 # Do not simply export all your public functions/methods/constants.
 @EXPORT = qw( labelsetup labeldata averycode);
 
-$VERSION = '2.25';
+$VERSION = '2.26';
 
 use Carp;
 
@@ -302,16 +302,22 @@ sub labelsetup {
 
 	my %params;
 	#	when adding a parameter, be sure to increment the array at the end of the statement.
-	@params{ qw / papersize orientation printable_left printable_right printable_top printable_bot output_top
+	@params{ qw / papersize height width orientation printable_left printable_right printable_top printable_bot output_top
 		output_left output_width output_height x_gap y_gap number x_adjust y_adjust
-		postnet font fontsize units firstlabel avery columns encoding / } = (0..22);
+		postnet font fontsize units firstlabel avery columns encoding / } = (0..24);
 
 	my @papers = @{$self->{DATA}{PAPER}};
 
 	my @encodings = qw / ISOLatin1Encoding StandardEncoding / ;
 
+    #   conversion from inches/centimeters to points
+
+	my $f = 72;
+	if ($self->{SETUP}{units} eq 'metric') {$f = 28.3465;}
+
 	foreach (keys %args) 
 		{ 
+            print "$_\n"; #################################
 			if (!defined $params{lc($_)}) {
 				print STDERR "Invalid setup parameter $_\n";
 				die;
@@ -367,6 +373,16 @@ sub labelsetup {
 				}
 				$self->{SETUP}{lc($_)} = $args{$_}; 
 			}
+			elsif (lc($_) eq 'width') {
+			    my($val) = lc($args{$_});
+				$self->{SETUP}{papersize} = 'Userdefined'; 
+                $self->{DATA}->{WIDTH}{Userdefined} = $val*$f;
+			}
+			elsif (lc($_) eq 'height') {
+			    my($val) = lc($args{$_});
+				$self->{SETUP}{papersize} = 'Userdefined'; 
+                $self->{DATA}->{HEIGHT}{Userdefined} = $val*$f;
+			}
 			elsif (lc($_) eq 'orientation') {
 			    my($val) = lc($args{$_});
 			    if ($val ne 'portrait' && $val ne 'landscape') {
@@ -382,10 +398,7 @@ sub labelsetup {
 	
 	#	convert all parameters to points
 
-	my $f = 72;
-	if ($self->{SETUP}{units} eq 'metric') {$f = 28.3465;}
-
-	foreach (qw/output_left output_top output_width output_height printable_left printable_right printable_top printable_bot x_gap y_gap x_adjust y_adjust/) {
+	foreach (qw/output_left output_top output_width output_height printable_left printable_right printable_top printable_bot x_gap y_gap x_adjust y_adjust /) {
 		if (defined $args{$_}) {$self->{SETUP}{$_} *= $f;}
 	}	
 
@@ -1158,11 +1171,15 @@ A hash of the label definition will be returned.
         options are : 
                     Letter Legal Ledger Tabloid A0 A1 A2 A3 A4 A5 A6 A7 A8
                     A9 B0 B1 B2 B3 B4 B5 B6 B7 B8 B9 Envelope10 Envelope9
-		    Envelope6_3_4 EnvelopeC5 EnvelopeDL Folio Executive 
+		    Envelope6_3_4 EnvelopeC5 EnvelopeDL Folio Executive Userdefined
+
+        If 'Userdefined' is used, then variables Width and Height need to be set.
 
 		orientation      => 'portrait',
 			the other possibility is 'landscape'
-            
+
+		encoding    => 'StandardEncoding', # or ISOLatin1Encoding
+		
         #   printable area on physical page - these numbers represent border widths
         #    typical values might be 0.25 inches
 

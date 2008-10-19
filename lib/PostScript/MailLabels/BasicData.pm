@@ -11,7 +11,7 @@ require Exporter;
 # Do not simply export all your public functions/methods/constants.
 @EXPORT = qw( );
 
-$VERSION = '1.21';
+$VERSION = '1.22';
 
 use Carp;
 
@@ -58,7 +58,7 @@ sub initialize {
 	@{$self->{PAPER}} = qw( Letter Legal Ledger Tabloid A0 A1 A2 A3 A4 A5 A6 A7 A8
                  A9 B0 B1 B2 B3 B4 B5 B6 B7 B8 B9 Envelope10 Envelope9 Envelope6_3_4
 		 EnvelopeC5
-                 EnvelopeDL Folio Executive );
+                 EnvelopeDL Folio Executive Userdefined);
 
 	# Dimensions of standard papers in points (1/72 inches)
 
@@ -77,7 +77,8 @@ sub initialize {
                B10 => 91,         Envelope10 => 297,
 	       Envelope9 => 279,  Envelope6_3_4 => 261,
                EnvelopeC5 => 461, EnvelopeDL => 312,
-               Folio => 595,      Executive => 522
+               Folio => 595,      Executive => 522,
+               Userdefined => 0,
             );
 	%{$self->{HEIGHT}} = ( Letter => 792,  Legal => 1008,
                Ledger => 792,  Tabloid => 1224,
@@ -94,7 +95,8 @@ sub initialize {
                B10 => 127,        Envelope10 => 684,
 	       Envelope9 => 639,  Envelope6_3_4 => 468,
                EnvelopeC5 => 648, EnvelopeDL => 624,
-               Folio => 935,      Executive => 756
+               Folio => 935,      Executive => 756,
+               Userdefined => 0,
     );
 
  # layout=>[paper-size,[list of product codes], description,
@@ -173,7 +175,7 @@ sub initialize {
 					0, 0, 612, 792, 0, 0,
 			],
 	        '5266' => ['Letter', [qw/8066 8166 8366/], 'file folder', 30,
-			            undef, undef, undef, undef, undef, undef,
+			            36, 36, 247.5, 49.5, 39.384, 0,
 			 ],
 			'5267' => ['Letter',[qw/5267/], 'return address', 80,
 					21.3768, 36, 126, 36, 21.7512, 0,
@@ -268,6 +270,9 @@ sub initialize {
 			'8463' => ['Letter',[qw/8463/], 'shipping', 10,
 					13.5, 36, 288, 144, 9, 0,
 			],
+ 			'8923' => ['Letter', [ 8923 ], 'shipping', 10, 
+                    13.5, 36, 288, 144, 0, 0,
+ 			]
 	);
 =head1
 old definitions replaced by more complete ones. Overlapping defs are sometimes
@@ -1503,6 +1508,9 @@ PostScript::MailLabels::BasicData - Basic data that is used by the MailLabels
 
 =head1 REVISION HISTORY
 
+    Version 1.22 Sun Oct 19 16:22:56 CDT 2008
+    Added Avery 8923 per patch from brian d. foy
+    Added Userdefined hook for paper size per request of Jim Albert
 	Version 1.21 Tue Nov 29 20:55:38 CST 2005
 	Added Avery 5526 labels per request of Wallace Winfrey
 	Version 1.20 - August 2005
