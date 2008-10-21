@@ -13,7 +13,7 @@ require Exporter;
 # Do not simply export all your public functions/methods/constants.
 @EXPORT = qw( labelsetup labeldata averycode);
 
-$VERSION = '2.26';
+$VERSION = '2.27';
 
 use Carp;
 

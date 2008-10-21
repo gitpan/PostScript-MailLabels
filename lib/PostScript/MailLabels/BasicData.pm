@@ -11,7 +11,7 @@ require Exporter;
 # Do not simply export all your public functions/methods/constants.
 @EXPORT = qw( );
 
-$VERSION = '1.22';
+$VERSION = '1.23';
 
 use Carp;
 
@@ -271,7 +271,7 @@ sub initialize {
 					13.5, 36, 288, 144, 9, 0,
 			],
  			'8923' => ['Letter', [ 8923 ], 'shipping', 10, 
-                    13.5, 36, 288, 144, 0, 0,
+                    13.5, 36, 288, 144, 27, 0,
  			]
 	);
 =head1
@@ -1508,6 +1508,8 @@ PostScript::MailLabels::BasicData - Basic data that is used by the MailLabels
 
 =head1 REVISION HISTORY
 
+    Version 1.23 Mon Oct 20 20:09:09 CDT 2008
+    Patch had an error - repired.
     Version 1.22 Sun Oct 19 16:22:56 CDT 2008
     Added Avery 8923 per patch from brian d. foy
     Added Userdefined hook for paper size per request of Jim Albert

@@ -5,4 +5,5 @@ WriteMakefile(
     'NAME'	=> 'PostScript::MailLabels',
     'VERSION_FROM' => "lib/PostScript/MailLabels.pm", 
 	EXE_FILES => [qw(demo/print_addrs)],
+    'LICENSE'		=> 'perl',
 );
