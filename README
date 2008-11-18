@@ -121,6 +121,10 @@ If you do report it, please include :
 
 Revision history for Perl extension PostScript::MailLabels.
 
+2.30 Mon Nov 17 20:36:36 CST 2008
+    Apply patch from brian d foy to add
+    dymo labels
+
 2.27 Mon Oct 20 20:09:09 CDT 2008
     Patch had an error - repired.
     Add META.yml

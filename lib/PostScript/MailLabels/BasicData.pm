@@ -11,7 +11,7 @@ require Exporter;
 # Do not simply export all your public functions/methods/constants.
 @EXPORT = qw( );
 
-$VERSION = '1.23';
+$VERSION = '1.30';
 
 use Carp;
 
@@ -20,12 +20,13 @@ sub new {
     my $class = ref($proto) || $proto;
     my $self  = {};
 
-	$self->{FONTS} = {}; # font metrics
-	$self->{PAPER} = []; # paper size names
-	$self->{HEIGHT} = {}; # paper heights in points
-	$self->{WIDTH} = {}; # paper widths in points
+	$self->{FONTS}   = {}; # font metrics
+	$self->{PAPER}   = []; # paper size names
+	$self->{HEIGHT}  = {}; # paper heights in points
+	$self->{WIDTH}   = {}; # paper widths in points
 	$self->{POSTNET} = []; # Postscript definition for PostNet font
-	$self->{AVERY} = {}; # Avery (tm) label descriptions
+	$self->{DYMO}    = {}; # Avery (tm) label descriptions
+	$self->{AVERY}   = {}; # Avery (tm) label descriptions
 		 # layout=>[paper-size,[list of product codes], description,
 		 #          number per sheet, left-offset, top-offset, width, height,
 		 #			x_gap, y_gap ]
@@ -33,7 +34,7 @@ sub new {
 
     bless $self, $class;
 
-	&initialize($self);
+	$self->initialize;
 
      return $self;
 }
@@ -58,7 +59,18 @@ sub initialize {
 	@{$self->{PAPER}} = qw( Letter Legal Ledger Tabloid A0 A1 A2 A3 A4 A5 A6 A7 A8
                  A9 B0 B1 B2 B3 B4 B5 B6 B7 B8 B9 Envelope10 Envelope9 Envelope6_3_4
 		 EnvelopeC5
-                 EnvelopeDL Folio Executive Userdefined);
+                 EnvelopeDL Folio Executive Userdefined
+                 Dymo-11351 Dymo-11352 Dymo-11353 Dymo-11354 Dymo-11355 Dymo-11356 
+                 Dymo-14681 Dymo-30252 Dymo-30253 Dymo-30256 Dymo-30258 Dymo-30277 
+                 Dymo-30299 Dymo-30320 Dymo-30321 Dymo-30323 Dymo-30324 Dymo-30325 
+                 Dymo-30326 Dymo-30327 Dymo-30330 Dymo-30332 Dymo-30333 Dymo-30334 
+                 Dymo-30335 Dymo-30336 Dymo-30337 Dymo-30339 Dymo-30345 Dymo-30346 
+                 Dymo-30347 Dymo-30348 Dymo-30364 Dymo-30365 Dymo-30370 Dymo-30373 
+                 Dymo-30374 Dymo-30376 Dymo-30383 Dymo-30384 Dymo-30387 Dymo-30854 
+                 Dymo-30856 Dymo-30857 Dymo-30886 Dymo-99010 Dymo-99012 Dymo-99014 
+                 Dymo-99015 Dymo-99016 Dymo-99017 Dymo-99018 Dymo-99019 
+
+                 );
 
 	# Dimensions of standard papers in points (1/72 inches)
 
@@ -79,6 +91,59 @@ sub initialize {
                EnvelopeC5 => 461, EnvelopeDL => 312,
                Folio => 595,      Executive => 522,
                Userdefined => 0,
+			 'Dymo-11351' => 64,
+			 'Dymo-11352' => 154,
+			 'Dymo-11353' => 72,
+			 'Dymo-11354' => 90,
+			 'Dymo-11355' => 144,
+			 'Dymo-11356' => 252,
+			 'Dymo-14681' => 188,
+			 'Dymo-30252' => 252,
+			 'Dymo-30253' => 252,
+			 'Dymo-30256' => 288,
+			 'Dymo-30258' => 198,
+			 'Dymo-30277' => 248,
+			 'Dymo-30299' => 64,
+			 'Dymo-30320' => 252,
+			 'Dymo-30321' => 252,
+			 'Dymo-30323' => 286,
+			 'Dymo-30324' => 198,
+			 'Dymo-30325' => 424,
+			 'Dymo-30326' => 221,
+			 'Dymo-30327' => 248,
+			 'Dymo-30330' => 144,
+			 'Dymo-30332' => 72,
+			 'Dymo-30333' => 72,
+			 'Dymo-30334' => 90,
+			 'Dymo-30335' => 86,
+			 'Dymo-30336' => 154,
+			 'Dymo-30337' => 252,
+			 'Dymo-30339' => 203,
+			 'Dymo-30345' => 180,
+			 'Dymo-30346' => 136,
+			 'Dymo-30347' => 108,
+			 'Dymo-30348' => 90,
+			 'Dymo-30364' => 288,
+			 'Dymo-30365' => 252,
+			 'Dymo-30370' => 169,
+			 'Dymo-30373' => 144,
+			 'Dymo-30374' => 252,
+			 'Dymo-30376' => 144,
+			 'Dymo-30383' => 504,
+			 'Dymo-30384' => 540,
+			 'Dymo-30387' => 756,
+			 'Dymo-30854' => 188,
+			 'Dymo-30856' => 292,
+			 'Dymo-30857' => 288,
+			 'Dymo-30886' => 126,
+			 'Dymo-99010' => 252,
+			 'Dymo-99012' => 252,
+			 'Dymo-99014' => 286,
+			 'Dymo-99015' => 198,
+			 'Dymo-99016' => 221,
+			 'Dymo-99017' => 144,
+			 'Dymo-99018' => 539,
+			 'Dymo-99019' => 539,
             );
 	%{$self->{HEIGHT}} = ( Letter => 792,  Legal => 1008,
                Ledger => 792,  Tabloid => 1224,
@@ -97,6 +162,60 @@ sub initialize {
                EnvelopeC5 => 648, EnvelopeDL => 624,
                Folio => 935,      Executive => 756,
                Userdefined => 0,
+			 'Dymo-11351' => 154,
+			 'Dymo-11352' => 72,
+			 'Dymo-11353' => 72,
+			 'Dymo-11354' => 162,
+			 'Dymo-11355' => 54,
+			 'Dymo-11356' => 118,
+			 'Dymo-14681' => 167,
+			 'Dymo-30252' => 79,
+			 'Dymo-30253' => 167,
+			 'Dymo-30256' => 167,
+			 'Dymo-30258' => 154,
+			 'Dymo-30277' => 82,
+			 'Dymo-30299' => 154,
+			 'Dymo-30320' => 79,
+			 'Dymo-30321' => 102,
+			 'Dymo-30323' => 154,
+			 'Dymo-30324' => 154,
+			 'Dymo-30325' => 54,
+			 'Dymo-30326' => 131,
+			 'Dymo-30327' => 57,
+			 'Dymo-30330' => 54,
+			 'Dymo-30332' => 72,
+			 'Dymo-30333' => 72,
+			 'Dymo-30334' => 162,
+			 'Dymo-30335' => 73,
+			 'Dymo-30336' => 72,
+			 'Dymo-30337' => 118,
+			 'Dymo-30339' => 54,
+			 'Dymo-30345' => 54,
+			 'Dymo-30346' => 36,
+			 'Dymo-30347' => 72,
+			 'Dymo-30348' => 65,
+			 'Dymo-30364' => 167,
+			 'Dymo-30365' => 168,
+			 'Dymo-30370' => 144,
+			 'Dymo-30373' => 71,
+			 'Dymo-30374' => 144,
+			 'Dymo-30376' => 80,
+			 'Dymo-30383' => 162,
+			 'Dymo-30384' => 167,
+			 'Dymo-30387' => 167,
+			 'Dymo-30854' => 167,
+			 'Dymo-30856' => 176,
+			 'Dymo-30857' => 167,
+			 'Dymo-30886' => 112,
+			 'Dymo-99010' => 79,
+			 'Dymo-99012' => 102,
+			 'Dymo-99014' => 154,
+			 'Dymo-99015' => 154,
+			 'Dymo-99016' => 139,
+			 'Dymo-99017' => 36,
+			 'Dymo-99018' => 108,
+			 'Dymo-99019' => 167,
+
     );
 
  # layout=>[paper-size,[list of product codes], description,
@@ -274,49 +393,173 @@ sub initialize {
                     13.5, 36, 288, 144, 27, 0,
  			]
 	);
-=head1
-old definitions replaced by more complete ones. Overlapping defs are sometimes
-the same, sometimes slightly different. Probably a guage of my ability to
-measure tiny distances.
-	%{$self->{AVERY}} = (
-	         '5267' => ['Letter', [qw/8167 8667/], 'return address', 80,
-			            undef, undef, undef, undef, undef, undef,
-			 ],
-	         '5160' => ['Letter', [qw/5160 8160 8250 8460 8560 8660/], 'address', 30,
-			            9, 36, 189, 72, 11.5, 0,
-			 ],
-	         '5161' => ['Letter', [qw/8161/], 'address', 20,
-			            undef, undef, undef, undef, undef, undef,
-			 ],
-	         '5162' => ['Letter', [qw/8162 8252 8462 8662/], 'address', 14,
-			            undef, undef, undef, undef, undef, undef,
-			 ],
-	         '5163' => ['Letter', [qw/8163 8253 8463 8663/], 'shipping', 10,
-			            undef, undef, undef, undef, undef, undef,
-			 ],
-	         '5164' => ['Letter', [qw/8164 8254/], 'shipping', 6,
-			            undef, undef, undef, undef, undef, undef,
-			 ],
-	         '5165' => ['Letter', [qw/8165 8255 8665/], 'full sheet', 1,
-			            0, 0, 612, 792, 0, 0,
-			 ],
-	         '5167' => ['Letter', [qw/8167 8257 8667/], 'full sheet', 80,
-			            18, 36, 126, 18, 22.5, 0.36,
-			 ],
-	         '5266' => ['Letter', [qw/8066 8166 8366/], 'file folder', 30,
-			            undef, undef, undef, undef, undef, undef,
-			 ],
-	         '6490' => ['Letter', [qw/8096/], '3 1/2 inch diskette, non-wrap', 15,
-			            undef, undef, undef, undef, undef, undef,
-			 ],
-	         '5196' => ['Letter', [qw/8196/], '3 1/2 inch diskette, wrap', 9,
-			            9, 36, 198, 216, 0, 0,
-			 ],
-	         '5395' => ['Letter', [qw/8395/], 'name badge', 8,
-			            undef, undef, undef, undef, undef, undef,
-			 ],
-	);
-=cut
+	
+	
+	# extracted from the CUPS drivers supplied by Dymo
+	# follow the links for the downloads and SDK
+	# https://global.dymo.com:443/enUS/RNW/RNW.html
+	%{$self->{DYMO}} = (
+			'11351' => [ 'Dymo-11351', [qw/11351/], 'Jewelry Label', 1,
+					0, 0, 64, 154, 0, 0
+					],
+			'11352' => [ 'Dymo-11352', [qw/11352/], 'Return Address Int', 1,
+					0, 0, 154, 72, 0, 0
+					],
+			'11353' => [ 'Dymo-11353', [qw/11353/], 'Multi-Purpose', 1,
+					0, 0, 72, 72, 0, 0
+					],
+			'11354' => [ 'Dymo-11354', [qw/11354/], 'Multi-Purpose', 1,
+					0, 0, 90, 162, 0, 0
+					],
+			'11355' => [ 'Dymo-11355', [qw/11355/], 'Multi-Purpose', 1,
+					0, 0, 144, 54, 0, 0
+					],
+			'11356' => [ 'Dymo-11356', [qw/11356/], 'White Name badge', 1,
+					0, 0, 252, 118, 0, 0
+					],
+			'14681' => [ 'Dymo-14681', [qw/14681/], 'CD/DVD Label', 1,
+					0, 0, 188, 167, 0, 0
+					],
+			'30252' => [ 'Dymo-30252', [qw/30252/], 'Address', 1,
+					0, 0, 252, 79, 0, 0
+					],
+			'30253' => [ 'Dymo-30253', [qw/30253/], 'Address (2 up)', 1,
+					0, 0, 252, 167, 0, 0
+					],
+			'30256' => [ 'Dymo-30256', [qw/30256/], 'Shipping', 1,
+					0, 0, 288, 167, 0, 0
+					],
+			'30258' => [ 'Dymo-30258', [qw/30258/], 'Diskette', 1,
+					0, 0, 198, 154, 0, 0
+					],
+			'30277' => [ 'Dymo-30277', [qw/30277/], 'File Folder (2 up)', 1,
+					0, 0, 248, 82, 0, 0
+					],
+			'30299' => [ 'Dymo-30299', [qw/30299/], 'Jewelry Label (2 up)', 1,
+					0, 0, 64, 154, 0, 0
+					],
+			'30320' => [ 'Dymo-30320', [qw/30320/], 'Address', 1,
+					0, 0, 252, 79, 0, 0
+					],
+			'30321' => [ 'Dymo-30321', [qw/30321/], 'Large Address', 1,
+					0, 0, 252, 102, 0, 0
+					],
+			'30323' => [ 'Dymo-30323', [qw/30323/], 'Shipping', 1,
+					0, 0, 286, 154, 0, 0
+					],
+			'30324' => [ 'Dymo-30324', [qw/30324/], 'Diskette', 1,
+					0, 0, 198, 154, 0, 0
+					],
+			'30325' => [ 'Dymo-30325', [qw/30325/], 'Video Spine', 1,
+					0, 0, 424, 54, 0, 0
+					],
+			'30326' => [ 'Dymo-30326', [qw/30326/], 'Video Top', 1,
+					0, 0, 221, 131, 0, 0
+					],
+			'30327' => [ 'Dymo-30327', [qw/30327/], 'File Folder', 1,
+					0, 0, 248, 57, 0, 0
+					],
+			'30330' => [ 'Dymo-30330', [qw/30330/], 'Return Address', 1,
+					0, 0, 144, 54, 0, 0
+					],
+			'30332' => [ 'Dymo-30332', [qw/30332/], '1 in x 1 in', 1,
+					0, 0, 72, 72, 0, 0
+					],
+			'30333' => [ 'Dymo-30333', [qw/30333/], '1/2 in x 1 in (2 up)', 1,
+					0, 0, 72, 72, 0, 0
+					],
+			'30334' => [ 'Dymo-30334', [qw/30334/], '2-1/4 in x 1-1/4 in', 1,
+					0, 0, 90, 162, 0, 0
+					],
+			'30335' => [ 'Dymo-30335', [qw/30335/], '1/2 in x 1/2 in (4 up)', 1,
+					0, 0, 86, 73, 0, 0
+					],
+			'30336' => [ 'Dymo-30336', [qw/30336/], '1 in x 2-1/8 in', 1,
+					0, 0, 154, 72, 0, 0
+					],
+			'30337' => [ 'Dymo-30337', [qw/30337/], 'Audio Cassette', 1,
+					0, 0, 252, 118, 0, 0
+					],
+			'30339' => [ 'Dymo-30339', [qw/30339/], '8mm Video (2 up)', 1,
+					0, 0, 203, 54, 0, 0
+					],
+			'30345' => [ 'Dymo-30345', [qw/30345/], '3/4 in x 2-1/2 in', 1,
+					0, 0, 180, 54, 0, 0
+					],
+			'30346' => [ 'Dymo-30346', [qw/30346/], '1/2 in x 1-7/8 in', 1,
+					0, 0, 136, 36, 0, 0
+					],
+			'30347' => [ 'Dymo-30347', [qw/30347/], '1 in x 1-1/2 in', 1,
+					0, 0, 108, 72, 0, 0
+					],
+			'30348' => [ 'Dymo-30348', [qw/30348/], '9/10 in x 1-1/4 in', 1,
+					0, 0, 90, 65, 0, 0
+					],
+			'30364' => [ 'Dymo-30364', [qw/30364/], 'Name Badge Label', 1,
+					0, 0, 288, 167, 0, 0
+					],
+			'30365' => [ 'Dymo-30365', [qw/30365/], 'Name Badge Card', 1,
+					0, 0, 252, 168, 0, 0
+					],
+			'30370' => [ 'Dymo-30370', [qw/30370/], 'Zip Disk', 1,
+					0, 0, 169, 144, 0, 0
+					],
+			'30373' => [ 'Dymo-30373', [qw/30373/], 'Price Tag Label', 1,
+					0, 0, 144, 71, 0, 0
+					],
+			'30374' => [ 'Dymo-30374', [qw/30374/], 'Appointment Card', 1,
+					0, 0, 252, 144, 0, 0
+					],
+			'30376' => [ 'Dymo-30376', [qw/30376/], 'Hanging File Insert', 1,
+					0, 0, 144, 80, 0, 0
+					],
+			'30383' => [ 'Dymo-30383', [qw/30383/], 'PC Postage 3-Part', 1,
+					0, 0, 504, 162, 0, 0
+					],
+			'30384' => [ 'Dymo-30384', [qw/30384/], 'PC Postage 2-Part', 1,
+					0, 0, 540, 167, 0, 0
+					],
+			'30387' => [ 'Dymo-30387', [qw/30387/], 'PC Postage EPS', 1,
+					0, 0, 756, 167, 0, 0
+					],
+			'30854' => [ 'Dymo-30854', [qw/30854/], 'CD Label', 1,
+					0, 0, 188, 167, 0, 0
+					],
+			'30856' => [ 'Dymo-30856', [qw/30856/], 'Badge Card Label', 1,
+					0, 0, 292, 176, 0, 0
+					],
+			'30857' => [ 'Dymo-30857', [qw/30857/], 'Badge Label', 1,
+					0, 0, 288, 167, 0, 0
+					],
+			'30886' => [ 'Dymo-30886', [qw/30886/], 'CD Label', 1,
+					0, 0, 126, 112, 0, 0
+					],
+			'99010' => [ 'Dymo-99010', [qw/99010/], 'Standard Address', 1,
+					0, 0, 252, 79, 0, 0
+					],
+			'99012' => [ 'Dymo-99012', [qw/99012/], 'Large Address', 1,
+					0, 0, 252, 102, 0, 0
+					],
+			'99014' => [ 'Dymo-99014', [qw/99014/], 'Shipping', 1,
+					0, 0, 286, 154, 0, 0
+					],
+			'99015' => [ 'Dymo-99015', [qw/99015/], 'Diskette', 1,
+					0, 0, 198, 154, 0, 0
+					],
+			'99016' => [ 'Dymo-99016', [qw/99016/], 'Video Top', 1,
+					0, 0, 221, 139, 0, 0
+					],
+			'99017' => [ 'Dymo-99017', [qw/99017/], 'Suspension File', 1,
+					0, 0, 144, 36, 0, 0
+					],
+			'99018' => [ 'Dymo-99018', [qw/99018/], 'Small Lever Arch', 1,
+					0, 0, 539, 108, 0, 0
+					],
+			'99019' => [ 'Dymo-99019', [qw/99019/], 'Large Lever Arch', 1,
+					0, 0, 539, 167, 0, 0
+					],
+		);
+	
 }
 
 sub Calibrate {
@@ -1508,6 +1751,8 @@ PostScript::MailLabels::BasicData - Basic data that is used by the MailLabels
 
 =head1 REVISION HISTORY
 
+    Version 1.30 Mon Nov 17 20:36:36 CST 2008
+    Add Dymo label data (patch from brian d foy)
     Version 1.23 Mon Oct 20 20:09:09 CDT 2008
     Patch had an error - repired.
     Version 1.22 Sun Oct 19 16:22:56 CDT 2008

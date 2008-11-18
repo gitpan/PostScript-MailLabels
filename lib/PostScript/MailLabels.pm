@@ -13,7 +13,7 @@ require Exporter;
 # Do not simply export all your public functions/methods/constants.
 @EXPORT = qw( labelsetup labeldata averycode);
 
-$VERSION = '2.27';
+$VERSION = '2.30';
 
 use Carp;
 
@@ -104,6 +104,10 @@ sub initialize {
 		# set equal to the Avery(tm) product code, and the label description
 		# will be updated from the database.
 		avery		=> undef,
+
+		# set equal to the Avery(tm) product code, and the label description
+		# will be updated from the database.
+		dymo		=> undef,
 
 				   );
 	
@@ -304,7 +308,7 @@ sub labelsetup {
 	#	when adding a parameter, be sure to increment the array at the end of the statement.
 	@params{ qw / papersize height width orientation printable_left printable_right printable_top printable_bot output_top
 		output_left output_width output_height x_gap y_gap number x_adjust y_adjust
-		postnet font fontsize units firstlabel avery columns encoding / } = (0..24);
+		postnet font fontsize units firstlabel avery dymo columns encoding / } = (0..25);
 
 	my @papers = @{$self->{DATA}{PAPER}};
 
@@ -317,7 +321,7 @@ sub labelsetup {
 
 	foreach (keys %args) 
 		{ 
-            print "$_\n"; #################################
+          #  print "$_\n"; #################################
 			if (!defined $params{lc($_)}) {
 				print STDERR "Invalid setup parameter $_\n";
 				die;
@@ -409,20 +413,29 @@ sub labelsetup {
  # layout=>[paper-size,[list of product codes], description,
  #          number per sheet, left-offset, top-offset, width, height]
  #			distances measured in points
-if (defined $self->{SETUP}{avery} && $self->{SETUP}{avery} ne '') {
-		my $code = $self->{SETUP}{avery};
-		$self->{SETUP}{papersize} = $self->{DATA}{AVERY}{$code}->[0]; 
-		$self->{SETUP}{number} = $self->{DATA}{AVERY}{$code}->[3]; 
-		$self->{SETUP}{output_left} = $self->{DATA}{AVERY}{$code}->[4]; 
-		$self->{SETUP}{output_top} = $self->{DATA}{AVERY}{$code}->[5]; 
-		$self->{SETUP}{output_width} = $self->{DATA}{AVERY}{$code}->[6]; 
-		$self->{SETUP}{output_height} = $self->{DATA}{AVERY}{$code}->[7]; 
-		$self->{SETUP}{x_gap} = $self->{DATA}{AVERY}{$code}->[8]; 
-		$self->{SETUP}{y_gap} = $self->{DATA}{AVERY}{$code}->[9]; 
+
+
+my( $labelmaker ) = grep { defined $self->{SETUP}{$_} && $self->{SETUP}{$_} ne '' } qw(avery dymo);
+	
+if ( $labelmaker ) {
+		my $code = $self->{SETUP}{$labelmaker};
+		
+		my $key  = uc $labelmaker;
+		
+		$self->{SETUP}{papersize}     = $self->{DATA}{$key}{$code}->[0]; 
+		$self->{SETUP}{number}        = $self->{DATA}{$key}{$code}->[3]; 
+		$self->{SETUP}{output_left}   = $self->{DATA}{$key}{$code}->[4]; 
+		$self->{SETUP}{output_top}    = $self->{DATA}{$key}{$code}->[5]; 
+		$self->{SETUP}{output_width}  = $self->{DATA}{$key}{$code}->[6]; 
+		$self->{SETUP}{output_height} = $self->{DATA}{$key}{$code}->[7]; 
+		$self->{SETUP}{x_gap}         = $self->{DATA}{$key}{$code}->[8]; 
+		$self->{SETUP}{y_gap}         = $self->{DATA}{$key}{$code}->[9]; 
 	}
 
 	#	Verify that measurements sum correctly...
 
+#	$self->{SETUP}{columns} = 1 if( $self->{SETUP}{columns} == 0 and $labelmaker eq 'dymo' );
+	
 	if ($self->{SETUP}{columns} > 0) {
 		my $pwidth = $self->{SETUP}{output_width}*$self->{SETUP}{columns} 
 					 + $self->{SETUP}{x_gap}*($self->{SETUP}{columns}-1)
@@ -468,6 +481,7 @@ sub labelcalibration {
 	
 	my $paperwidth = papersize($self)->[0] ; # total width of paper
 	my $paperheight = papersize($self)->[1] ; # total height of paper
+		
 	my $xcenter = papersize($self, 1)->[0]/2;
 	my $ycenter = papersize($self, 1)->[1]/2;
 	my $landscape = ($self->{SETUP}{orientation} eq 'landscape');
@@ -575,6 +589,7 @@ LABELS
 	}
 
 	my $cols = $self->{SETUP}{columns} || int(papersize($self)->[0] / ($self->{SETUP}{x_gap} + $self->{SETUP}{output_width}));
+
 	my $rows = $self->{SETUP}{number}/$cols;
 
 	my $boxwidth = $self->{SETUP}{output_width} ; # label width
@@ -1001,6 +1016,38 @@ sub averydata {
 }
 
 # ****************************************************************
+#	return the dymo layout code given a product code
+sub dymocode {
+    my $self = shift;
+	my $product = shift;
+
+ # layout=>[paper-size,[list of product codes], description,
+ #          number per sheet, left-offset, top-offset, width, height]
+ #			distances measured in points
+
+	foreach (keys %{$self->{DATA}{DYMO}}) {
+		if (grep /$product/,@{$self->{DATA}{DYMO}{$_}->[1]}) {
+			return $_;
+		}
+	}
+
+    return 0;
+}
+
+# ****************************************************************
+#	return the dymo data
+sub dymodata {
+    my $self = shift;
+
+ # layout=>[paper-size,[list of product codes], description,
+ #          number per sheet, left-offset, top-offset, width, height,
+ #			x-gap, y-gap]
+ #			distances measured in points
+
+    return $self->{DATA}{DYMO};
+}
+
+# ****************************************************************
 #		Return width & height of paper
 sub papersize {
     my $self = shift;
@@ -1128,8 +1175,8 @@ at the upper left, and counting across, and then down. For example, if
 I have 3 columns of labels, label five is the second label in the second
 row.
 
-If you have an Avery(tm) product that I haven't defined, send me the specs and 
-I'll add it.
+If you have an Avery(tm) or Dymo product that I haven't defined, send
+me the specs and I'll add it.
 
 Also, if there is another brand of labels that you use, send me the relevant
 data and I'll add that as well. I suspect that there must be some other vendor
@@ -1218,6 +1265,11 @@ A hash of the label definition will be returned.
         # set equal to the Avery(tm) product code, and the label description
         # will be updated from the database.
         Avery        => undef,
+
+        # set equal to the Dymo(tm) product code, and the label description
+        # will be updated from the database.
+        Dymo        => undef,
+
         );
 
         generate a PostScript(tm) file with rulers on it for making measurements
@@ -1229,6 +1281,8 @@ A hash of the label definition will be returned.
 
         translate an Avery(tm) product code into a template code.
     $templatecode = $labels->averycode($product_code) ;
+        translate an Dymo(tm) product code into a template code.
+    $templatecode = $labels->dymocode($product_code) ;
         retrieve an array of the paper width, height (in points)
     @width_height = @{ $labels->papersize } ;
         get the length of a string in points using the current font
@@ -1568,6 +1622,18 @@ Add bitmaps or images?
 =back
 
 =head1 REVISION HISTORY
+
+    2.30 Mon Nov 17 20:36:36 CST 2008
+    Apply patch from brian d foy to add
+    dymo labels
+
+    2.27 Mon Oct 20 20:09:09 CDT 2008
+    Patch had an error - repaired.
+    Add META.yml
+
+    2.26 Sun Oct 19 16:22:56 CDT 2008
+    Add Userdefined as an option for papersize at request of Jim Albert
+    Apply patch from brian d foy for Avery 8923 l
 
 	Version 2.25 Tue Jul  4 14:37:34 CDT 2006
 	Escape open and close parens in postscript code at request of Thomas Byström

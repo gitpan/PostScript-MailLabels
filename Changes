@@ -1,11 +1,16 @@
 Revision history for Perl extension PostScript::MailLabels.
 
+2.30 Mon Nov 17 20:36:36 CST 2008
+    Apply patch from brian d foy to add
+    dymo labels
+
 2.27 Mon Oct 20 20:09:09 CDT 2008
-    Patch had an error - repired.
+    Patch had an error - repaired.
     Add META.yml
+
 2.26 Sun Oct 19 16:22:56 CDT 2008
     Add Userdefined as an option for papersize at request of Jim Albert
-    Apply patch from brian d. foy for Avery 8923 labels, plus a documentation adjustment
+    Apply patch from brian d foy for Avery 8923 labels, plus a documentation adjustment
 
 2.25 Tue Jul  4 14:37:34 CDT 2006
 	Escape open and close parens in postscript code at request of Thomas
