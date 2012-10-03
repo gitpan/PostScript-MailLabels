@@ -1,6 +1,0 @@
-.DS_Store
-Makefile
-blib
-*.ps
-*.pdf
-pm_to_blib

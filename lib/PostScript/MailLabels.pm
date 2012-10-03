@@ -13,7 +13,7 @@ require Exporter;
 # Do not simply export all your public functions/methods/constants.
 @EXPORT = qw( labelsetup labeldata averycode);
 
-$VERSION = '2.30';
+$VERSION = '2.32';
 
 use Carp;
 
@@ -1623,7 +1623,7 @@ Add bitmaps or images?
 
 =head1 REVISION HISTORY
  
-    2.31 Tue Oct  2 19:26:09 CDT 2012
+    2.32 Tue Oct  2 19:26:09 CDT 2012
     Update from Lee Hart to fix dawn of time bug of not honoring metric units!
 
     2.30 Mon Nov 17 20:36:36 CST 2008

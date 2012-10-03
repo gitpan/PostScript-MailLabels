@@ -121,7 +121,7 @@ If you do report it, please include :
 
 Revision history for Perl extension PostScript::MailLabels.
 
-2.31 Tue Oct  2 19:26:09 CDT 2012
+2.32 Tue Oct  2 19:26:09 CDT 2012
     Update from Lee Hart to fix dawn of time bug of not honoring metric units!
 
 2.30 Mon Nov 17 20:36:36 CST 2008
